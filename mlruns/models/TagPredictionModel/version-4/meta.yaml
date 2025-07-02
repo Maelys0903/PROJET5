@@ -1,0 +1,18 @@
+aliases: []
+creation_timestamp: 1751012408694
+current_stage: None
+deployment_job_state: null
+description: null
+last_updated_timestamp: 1751012408694
+metrics: null
+model_id: m-0c9f5761ec0f4817b2d20e842d342d3d
+name: TagPredictionModel
+params: null
+run_id: bfbf2a4825e244ed8e8d946af8534633
+run_link: null
+source: models:/m-0c9f5761ec0f4817b2d20e842d342d3d
+status: READY
+status_message: null
+storage_location: file:///C:/Mes documents/OpenClassRooms/PROJET5/mlruns/451208790809575449/models/m-0c9f5761ec0f4817b2d20e842d342d3d/artifacts
+user_id: null
+version: 4

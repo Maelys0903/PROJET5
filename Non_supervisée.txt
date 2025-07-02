@@ -1,0 +1,91 @@
+import pandas as pd
+import gensim
+import gensim.corpora as corpora
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from sklearn.manifold import TSNE
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Chargement des données
+df = pd.read_csv("stack_questions_api.csv")
+df.head()
+
+import spacy
+
+# Charger le modèle spaCy anglais
+nlp = spacy.load("en_core_web_sm")
+
+# Récupérer les titres non nuls
+texts_raw = df['title'].dropna().tolist()
+
+# Fonction de prétraitement avec spaCy
+def preprocess_spacy(texts):
+    processed = []
+    for doc in nlp.pipe(texts, disable=["ner", "parser"]):  # plus rapide en désactivant les composants inutiles
+        tokens = [
+            token.lemma_ for token in doc
+            if token.is_alpha                # mots alphabétiques uniquement
+            and not token.is_stop           # retirer les stop words
+            and len(token) > 2              # longueur minimale
+        ]
+        processed.append(tokens)
+    return processed
+
+# Appliquer le prétraitement
+texts = preprocess_spacy(texts_raw)
+
+# 4. Créer un dictionnaire et un corpus
+id2word = corpora.Dictionary(texts)
+corpus = [id2word.doc2bow(text) for text in texts]
+
+# 5. Modèle LDA
+lda_model = gensim.models.LdaModel(
+    corpus=corpus,
+    id2word=id2word,
+    num_topics=5,
+    random_state=42,
+    passes=10,
+    chunksize=100,
+    alpha='auto',
+    per_word_topics=True
+)
+
+# Affichage des topics
+for idx, topic in lda_model.print_topics(-1):
+    print(f"Topic {idx}:\n{topic}\n")
+
+import numpy as np
+
+# 6. Visualisation 2D des topics
+topic_distributions = []
+for doc_bow in corpus:
+    topics = lda_model.get_document_topics(doc_bow)
+    dense = [0] * lda_model.num_topics
+    for topic_num, prob in topics:
+        dense[topic_num] = prob
+    topic_distributions.append(dense)
+
+# Convertir en array NumPy
+topic_distributions_np = np.array(topic_distributions)
+
+# Créer et appliquer t-SNE
+tsne = TSNE(n_components=2, random_state=42, perplexity=10)
+tsne_results = tsne.fit_transform(topic_distributions_np)
+
+# Dominant topic
+dominant_topics = [max(enumerate(doc), key=lambda x: x[1])[0] for doc in topic_distributions]
+
+# DataFrame pour visualisation
+df_vis = pd.DataFrame({
+    'x': tsne_results[:, 0],
+    'y': tsne_results[:, 1],
+    'topic': dominant_topics,
+    'title': df['title'].values
+})
+
+# Tracé
+plt.figure(figsize=(10, 6))
+sns.scatterplot(data=df_vis, x='x', y='y', hue='topic', palette='tab10')
+plt.title("Visualisation des topics LDA en 2D (t-SNE)")
+plt.show()

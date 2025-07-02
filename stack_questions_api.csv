@@ -1,0 +1,2754 @@
+question_id,title,body,tags,creation_date,score,view_count,answer_count,is_answered
+11227809,Why is processing a sorted array faster than processing an unsorted array?,"<p>In this C++ code, sorting the data (<em>before</em> the timed region) makes the primary loop ~6x faster:</p>
+<pre class=""lang-cpp prettyprint-override""><code>#include &lt;algorithm&gt;
+#include &lt;ctime&gt;
+#include &lt;iostream&gt;
+
+int main()
+{
+    // Generate data
+    const unsigned arraySize = 32768;
+    int data[arraySize];
+
+    for (unsigned c = 0; c &lt; arraySize; ++c)
+        data[c] = std::rand() % 256;
+
+    // !!! With this, the next loop runs faster.
+    std::sort(data, data + arraySize);
+
+    // Test
+    clock_t start = clock();
+    long long sum = 0;
+    for (unsigned i = 0; i &lt; 100000; ++i)
+    {
+        for (unsigned c = 0; c &lt; arraySize; ++c)
+        {   // Primary loop.
+            if (data[c] &gt;= 128)
+                sum += data[c];
+        }
+    }
+
+    double elapsedTime = static_cast&lt;double&gt;(clock()-start) / CLOCKS_PER_SEC;
+
+    std::cout &lt;&lt; elapsedTime &lt;&lt; '\n';
+    std::cout &lt;&lt; &quot;sum = &quot; &lt;&lt; sum &lt;&lt; '\n';
+}
+</code></pre>
+<ul>
+<li>Without <code>std::sort(data, data + arraySize);</code>, the code runs in 11.54 seconds.</li>
+<li>With the sorted data, the code runs in 1.93 seconds.</li>
+</ul>
+<p>(Sorting itself takes more time than this one pass over the array, so it's not actually worth doing if we needed to calculate this for an unknown array.)</p>
+<hr />
+<p>Initially, I thought this might be just a language or compiler anomaly, so I tried Java:</p>
+<pre class=""lang-java prettyprint-override""><code>import java.util.Arrays;
+import java.util.Random;
+
+public class Main
+{
+    public static void main(String[] args)
+    {
+        // Generate data
+        int arraySize = 32768;
+        int data[] = new int[arraySize];
+
+        Random rnd = new Random(0);
+        for (int c = 0; c &lt; arraySize; ++c)
+            data[c] = rnd.nextInt() % 256;
+
+        // !!! With this, the next loop runs faster
+        Arrays.sort(data);
+
+        // Test
+        long start = System.nanoTime();
+        long sum = 0;
+        for (int i = 0; i &lt; 100000; ++i)
+        {
+            for (int c = 0; c &lt; arraySize; ++c)
+            {   // Primary loop.
+                if (data[c] &gt;= 128)
+                    sum += data[c];
+            }
+        }
+
+        System.out.println((System.nanoTime() - start) / 1000000000.0);
+        System.out.println(&quot;sum = &quot; + sum);
+    }
+}
+</code></pre>
+<p>With a similar but less extreme result.</p>
+<hr />
+<p>My first thought was that sorting brings the data into the <a href=""https://en.wikipedia.org/wiki/CPU_cache"" rel=""noreferrer"">cache</a>, but that's silly because the array was just generated.</p>
+<ul>
+<li>What is going on?</li>
+<li>Why is processing a sorted array faster than processing an unsorted array?</li>
+</ul>
+<p>The code is summing up some independent terms, so the order should not matter.</p>
+<hr />
+<h2>Related / follow-up Q&amp;As with more modern C++ compilers</h2>
+<ul>
+<li><a href=""https://stackoverflow.com/q/66521344"">Why is processing an unsorted array the same speed as processing a sorted array with modern x86-64 clang?</a> - <strong>modern C++ compilers auto-vectorize the loop</strong>, especially when SSE4.1 or AVX2 is available.  This avoids any data-dependent branching so performance isn't data-dependent.</li>
+<li><a href=""https://stackoverflow.com/q/28875325"">gcc optimization flag -O3 makes code slower than -O2</a> - branchless scalar with <code>cmov</code> can result in a longer dependency chain (especially when GCC chooses poorly), creating a latency bottleneck that makes it slower than branchy asm for the sorted case.</li>
+</ul>
+","['java', 'c++', 'performance', 'cpu-architecture', 'branch-prediction']",1340805096,27457,1941240,25,True
+927358,How do I undo the most recent local commits in Git?,"<p>I accidentally committed the wrong files to <a href=""https://en.wikipedia.org/wiki/Git"" rel=""noreferrer"">Git</a> but haven't pushed the commit to the server yet.</p>
+<p>How do I undo those commits from the <em>local</em> repository?</p>
+","['git', 'version-control', 'git-commit', 'undo']",1243620554,27061,16139015,103,True
+2003505,How do I delete a Git branch locally and remotely?,"<p>Failed Attempts to Delete a Remote Branch:</p>
+<pre class=""lang-bash prettyprint-override""><code>$ git branch -d remotes/origin/bugfix
+error: branch 'remotes/origin/bugfix' not found.
+
+$ git branch -d origin/bugfix
+error: branch 'origin/bugfix' not found.
+
+$ git branch -rd origin/bugfix
+Deleted remote branch origin/bugfix (was 2a14ef7).
+
+$ git push
+Everything up-to-date
+
+$ git pull
+From github.com:gituser/gitproject
+
+* [new branch] bugfix -&gt; origin/bugfix
+Already up-to-date.
+</code></pre>
+<p>How do I properly delete the <code>remotes/origin/bugfix</code> branch both locally and remotely?</p>
+","['git', 'version-control', 'git-branch', 'git-push', 'git-remote']",1262653935,20365,12869902,41,True
+292357,What is the difference between &#39;git pull&#39; and &#39;git fetch&#39;?,"<p>What are the differences between <a href=""https://git-scm.com/docs/git-pull"" rel=""noreferrer""><code>git pull</code></a> and <a href=""https://git-scm.com/docs/git-fetch"" rel=""noreferrer""><code>git fetch</code></a>?</p>
+","['git', 'version-control', 'git-pull', 'git-fetch']",1226742669,13995,3674790,37,True
+231767,What does the &quot;yield&quot; keyword do in Python?,"<p>What functionality does the <a href=""https://docs.python.org/3/reference/simple_stmts.html#yield"" rel=""noreferrer""><code>yield</code></a> keyword in Python provide?</p>
+<p>For example, I'm trying to understand this code<sup><strong>1</strong></sup>:</p>
+<pre><code>def _get_child_candidates(self, distance, min_dist, max_dist):
+    if self._leftchild and distance - max_dist &lt; self._median:
+        yield self._leftchild
+    if self._rightchild and distance + max_dist &gt;= self._median:
+        yield self._rightchild  
+</code></pre>
+<p>And this is the caller:</p>
+<pre><code>result, candidates = [], [self]
+while candidates:
+    node = candidates.pop()
+    distance = node._get_dist(obj)
+    if distance &lt;= max_dist and distance &gt;= min_dist:
+        result.extend(node._values)
+    candidates.extend(node._get_child_candidates(distance, min_dist, max_dist))
+return result
+</code></pre>
+<p>What happens when the method <code>_get_child_candidates</code> is called?
+Is a list returned? A single element? Is it called again? When will subsequent calls stop?</p>
+
+<hr />
+<sub>
+1. This piece of code was written by Jochen Schulz (jrschulz), who made a great Python library for metric spaces. This is the link to the complete source: <a href=""https://well-adjusted.de/~jrspieker/mspace/"" rel=""noreferrer"">Module mspace</a>.</sub> 
+","['python', 'iterator', 'generator', 'yield']",1224800471,13086,3450087,52,True
+5767325,How can I remove a specific item from an array in JavaScript?,"<p>How do I remove a specific value from an array? Something like:</p>
+<pre class=""lang-js prettyprint-override""><code>array.remove(value);
+</code></pre>
+<p>Constraints: I have to use <strong>core</strong> JavaScript. Frameworks are not allowed.</p>
+","['javascript', 'arrays']",1303597038,12198,13419218,50,True
+6591213,How can I rename a local Git branch?,"<p>How can I rename a local branch which has not yet been pushed to a remote repository?</p>
+<p>Related:</p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/1526794/rename-master-branch-for-both-local-and-remote-git-repositories?answertab=votes#tab-top"">Rename master branch for both local and remote Git repositories</a></li>
+<li><a href=""https://stackoverflow.com/questions/30590083/how-to-rename-a-remote-git-branch-name/30590238#30590238"">How do I rename both a Git local and remote branch name?</a></li>
+</ul>
+","['git', 'version-control', 'git-branch']",1309922436,11936,6101932,41,True
+477816,Which JSON content type do I use?,"<p>There are many &quot;standards&quot; for the <a href=""http://en.wikipedia.org/wiki/JSON"" rel=""noreferrer"">JSON</a> content type:</p>
+<pre class=""lang-none prettyprint-override""><code>application/json
+application/x-javascript
+text/javascript
+text/x-javascript
+text/x-json
+</code></pre>
+<p>Which one do I use, and where? I assume security and browser support issues are a factor.</p>
+<p>Related: <a href=""https://stackoverflow.com/questions/404470/what-mime-type-if-json-is-being-returned-by-a-rest-api"">What MIME type if JSON is being returned by a REST API?</a></p>
+","['json', 'mime-types', 'content-type']",1232897119,11644,3996248,40,True
+348170,How do I undo &#39;git add&#39; before commit?,"<p>I mistakenly added files to Git using the command:</p>
+<pre><code>git add myfile.txt
+</code></pre>
+<p>I have not yet run <code>git commit</code>. How do I undo this so that these changes will not be included in the commit?</p>
+","['git', 'git-commit', 'undo', 'git-add']",1228687066,11555,6163227,39,True
+1642028,What is the &#39;--&gt;&#39; operator in C/C++?,"<p>After reading <a href=""http://groups.google.com/group/comp.lang.c++.moderated/msg/33f173780d58dd20"" rel=""noreferrer"">Hidden Features and Dark Corners of C++/STL</a> on <code>comp.lang.c++.moderated</code>, I was completely surprised that the following snippet compiled and worked in both Visual Studio 2008 and G++ 4.4. I would assume this is also valid C since it works in GCC as well.</p>
+<p>Here's the code:</p>
+<pre><code>#include &lt;stdio.h&gt;
+int main()
+{
+    int x = 10;
+    while (x --&gt; 0) // x goes to 0
+    {
+        printf(&quot;%d &quot;, x);
+    }
+}
+</code></pre>
+<p>Output:</p>
+<pre><code>9 8 7 6 5 4 3 2 1 0
+</code></pre>
+<p>Where is this defined in the standard, and where has it come from?</p>
+","['c++', 'c', 'operators', 'code-formatting', 'standards-compliance']",1256799465,10233,1035545,26,True
+1125968,How do I force &quot;git pull&quot; to overwrite local files?,"<p>How do I force an overwrite of local files on a <code>git pull</code>? My local repository contains a file of the same filename as on the server.</p>
+<blockquote>
+<p>error: Untracked working tree file 'example.txt' would be overwritten by merge</p>
+</blockquote>
+","['git', 'version-control', 'overwrite', 'git-pull', 'git-fetch']",1247583495,9901,9293810,55,True
+244777,Can comments be used in JSON?,"<p>Can I use comments inside a <a href=""https://en.wikipedia.org/wiki/JSON"" rel=""noreferrer"">JSON</a> file? If so, how?</p>
+","['json', 'comments']",1225226343,9732,3921574,63,True
+79923,What and where are the stack and heap?,"<ul>
+<li>What are the stack and heap?</li>
+<li>Where are they located physically in a computer's memory?</li>
+<li>To what extent are they controlled by the OS or language run-time?</li>
+<li>What is their scope?</li>
+<li>What determines their sizes?</li>
+<li>What makes one faster?</li>
+</ul>
+","['data-structures', 'memory-management', 'heap-memory', 'dynamic-memory-allocation', 'stack-memory']",1221625086,9539,2008563,30,True
+8318911,Why does HTML think “chucknorris” is a color?,"<p>Why do certain random strings produce colors when entered as background colors in HTML?</p>
+<p>For example, <code>bgcolor=&quot;chucknorris&quot;</code> produces a <strong>red background</strong>:</p>
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""false"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-html lang-html prettyprint-override""><code>&lt;body bgcolor=""chucknorris""&gt; test &lt;/body&gt;</code></pre>
+</div>
+</div>
+</p>
+<p>Conversely,  <code>bgcolor=&quot;chucknorr&quot;</code> produces a <strong>yellow background</strong>:</p>
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""false"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-html lang-html prettyprint-override""><code>&lt;body bgcolor=""chucknorr""&gt; test &lt;/body&gt;</code></pre>
+</div>
+</div>
+</p>
+<p>This holds true across various browsers and platforms. What’s going on here?</p>
+","['html', 'browser', 'background-color']",1322607262,8927,798766,9,True
+1783405,How to check out a remote Git branch?,"<p>How do I check out the remote <code>test</code> branch? I can see it with <code>git branch -r</code>. I tried:</p>
+<ul>
+<li><code>git checkout test</code>, which does nothing</li>
+<li><code>git checkout origin/test</code> gives <code>* (no branch)</code></li>
+</ul>
+","['git', 'git-checkout', 'remote-branch']",1258986226,8843,9430814,47,True
+178325,How do I check if an element is hidden in jQuery?,"<p>How do I toggle the visibility of an element using  <code>.hide()</code>, <code>.show()</code>, or <code>.toggle()</code>?</p>
+<p>How do I test if an element is <code>visible</code> or <code>hidden</code>?</p>
+","['javascript', 'jquery', 'dom', 'visibility', 'display']",1223384598,8740,3249462,67,True
+1274057,"How do I make Git forget about a file that was tracked, but is now in .gitignore?","<p>I put a file that was previously being tracked by Git onto the <code>.gitignore</code> list. However, the file still shows up in <code>git status</code> after it is edited. How do I force Git to completely forget the file?</p>
+","['git', 'gitignore', 'git-rm']",1250191402,8540,2666657,37,True
+1335851,"What does &quot;use strict&quot; do in JavaScript, and what is the reasoning behind it?","<p>Recently, I ran some of my JavaScript code through Crockford's <a href=""http://www.jslint.com/"" rel=""noreferrer"">JSLint</a>, and it gave the following error:</p>
+<blockquote>
+<p>Problem at line 1 character 1: Missing &quot;use strict&quot; statement.</p>
+</blockquote>
+<p>Doing some searching, I realized that some people add <code>&quot;use strict&quot;;</code> into their JavaScript code. Once I added the statement, the error stopped appearing. Unfortunately, Google did not reveal much of the history behind this string statement. Certainly it must have something to do with how the JavaScript is interpreted by the browser, but I have no idea what the effect would be.</p>
+<p>So what is <code>&quot;use strict&quot;;</code> all about, what does it imply, and is it still relevant?</p>
+<p>Do any of the current browsers respond to the <code>&quot;use strict&quot;;</code> string or is it for future use?</p>
+","['javascript', 'syntax', 'jslint', 'use-strict']",1251303013,8535,1228134,32,True
+419163,What does if __name__ == &quot;__main__&quot;: do?,"<p>What does this do, and why should one include the <code>if</code> statement?</p>
+<pre class=""lang-py prettyprint-override""><code>if __name__ == &quot;__main__&quot;:
+    print(&quot;Hello, World!&quot;)
+</code></pre>
+<hr />
+<p><sub>If you are trying to close a question where someone should be using this idiom and isn't, consider closing as a duplicate of <a href=""https://stackoverflow.com/questions/6523791"">Why is Python running my module when I import it, and how do I stop it?</a> instead. For questions where someone simply hasn't called any functions, or incorrectly expects a function named <code>main</code> to be used as an entry point automatically, use <a href=""https://stackoverflow.com/questions/17257631"">Why doesn&#39;t the main() function run when I start a Python script? Where does the script start running?</a>.</sub></p>
+","['python', 'namespaces', 'program-entry-point', 'python-module', 'idioms']",1231301460,8389,4918330,40,True
+61212,How do I remove local (untracked) files from the current Git working tree?,"<p>How do I delete untracked local files from the current working tree?</p>
+","['git', 'branch', 'git-branch']",1221383170,8338,3582768,43,True
+394809,Does Python have a ternary conditional operator?,"<p>Is there a <a href=""https://en.wikipedia.org/wiki/%3F:#Python"" rel=""noreferrer"">ternary conditional operator</a> in Python?</p>
+","['python', 'operators', 'conditional-operator']",1230366738,8090,3083905,32,True
+40480,Is Java &quot;pass-by-reference&quot; or &quot;pass-by-value&quot;?,"<p>I always thought Java uses <strong>pass-by-reference</strong>. However, I read <a href=""http://javadude.com/articles/passbyvalue.htm"" rel=""noreferrer"">a blog post</a> which claims that Java uses <strong>pass-by-value</strong>. I don't think I understand the distinction the author is making.</p>
+<p>What is the explanation?</p>
+","['java', 'methods', 'parameter-passing', 'pass-by-reference', 'pass-by-value']",1220386469,7745,2807481,87,True
+503093,How do I redirect to another webpage?,"<p>How can I redirect the user from one page to another using jQuery or pure JavaScript?</p>
+","['javascript', 'jquery', 'http-redirect']",1233579256,7695,8109962,58,True
+16956810,Find all files containing a specific text (string) on Linux?,"<p>How do I find all files containing a specific string of text within their file contents?</p>
+<p>The following doesn't work. It seems to display every single file in the system.</p>
+<pre class=""lang-none prettyprint-override""><code>find / -type f -exec grep -H 'text-to-find-here' {} \;
+</code></pre>
+","['linux', 'text', 'grep', 'directory', 'find']",1370506005,7686,11872544,57,True
+336859,var functionName = function() {} vs function functionName() {},"<p>I've recently started maintaining someone else's JavaScript code. I'm fixing bugs, adding features and also trying to tidy up the code and make it more consistent.</p>
+<p>The previous developer used two ways of declaring functions and I can't work out if there is a reason behind it or not.</p>
+<p>The two ways are:</p>
+<pre><code>var functionOne = function() {
+    // Some code
+};
+</code></pre>
+<p>And,</p>
+<pre><code>function functionTwo() {
+    // Some code
+}
+</code></pre>
+<p>What are the reasons for using these two different methods and what are the pros and cons of each? Is there anything that can be done with one method that can't be done with the other?</p>
+","['javascript', 'function', 'methods', 'syntax']",1228303867,7667,1234880,42,True
+179123,"How to modify existing, unpushed commit messages?","<p>I wrote the wrong thing in a commit message.</p>
+
+<p>How can I change the message? The commit has not been pushed yet.</p>
+","['git', 'git-commit', 'git-rewrite-history', 'git-amend']",1223394287,7641,4211646,27,True
+111102,How do JavaScript closures work?,"<p>How would you explain JavaScript closures to someone with a knowledge of the concepts they consist of (for example functions, variables and the like), but does not understand closures themselves?</p>
+
+<p>I have seen <a href=""http://en.wikipedia.org/wiki/Scheme_%28programming_language%29"" rel=""noreferrer"">the Scheme example</a> given on Wikipedia, but unfortunately it did not help.</p>
+","['javascript', 'function', 'variables', 'scope', 'closures']",1222006327,7610,1632464,86,True
+4114095,How do I revert a Git repository to a previous commit?,"<p>How do I revert from my current state to a snapshot made on a certain commit?</p>
+
+<p>If I do <code>git log</code>, then I get the following output:</p>
+
+<pre><code>$ git log
+commit a867b4af366350be2e7c21b8de9cc6504678a61b`
+Author: Me &lt;me@me.com&gt;
+Date:   Thu Nov 4 18:59:41 2010 -0400
+
+blah blah blah...
+
+commit 25eee4caef46ae64aa08e8ab3f988bc917ee1ce4
+Author: Me &lt;me@me.com&gt;
+Date:   Thu Nov 4 05:13:39 2010 -0400
+
+more blah blah blah...
+
+commit 0766c053c0ea2035e90f504928f8df3c9363b8bd
+Author: Me &lt;me@me.com&gt;
+Date:   Thu Nov 4 00:55:06 2010 -0400
+
+And yet more blah blah...
+
+commit 0d1d7fc32e5a947fbd92ee598033d85bfc445a50
+Author: Me &lt;me@me.com&gt;
+Date:   Wed Nov 3 23:56:08 2010 -0400
+
+Yep, more blah blah.
+</code></pre>
+
+<p>How do I revert to the commit from November 3, i.e. commit <code>0d1d7fc</code>?</p>
+","['git', 'git-checkout', 'git-reset', 'git-revert']",1289062694,7608,12409047,41,True
+6841333,Why is subtracting these two epoch-milli Times (in year 1927) giving a strange result?,"<p>If I run the following program, which parses two date strings referencing times 1 second apart and compares them:</p>
+<pre><code>public static void main(String[] args) throws ParseException {
+    SimpleDateFormat sf = new SimpleDateFormat(&quot;yyyy-MM-dd HH:mm:ss&quot;);  
+    String str3 = &quot;1927-12-31 23:54:07&quot;;  
+    String str4 = &quot;1927-12-31 23:54:08&quot;;  
+    Date sDt3 = sf.parse(str3);  
+    Date sDt4 = sf.parse(str4);  
+    long ld3 = sDt3.getTime() /1000;  
+    long ld4 = sDt4.getTime() /1000;
+    System.out.println(ld4-ld3);
+}
+</code></pre>
+<p><strong>The output is:</strong></p>
+<pre><code>353
+</code></pre>
+<p>Why is <code>ld4-ld3</code>, not <code>1</code> (as I would expect from the one-second difference in the times), but <code>353</code>?</p>
+<p>If I change the dates to times 1 second later:</p>
+<pre><code>String str3 = &quot;1927-12-31 23:54:08&quot;;  
+String str4 = &quot;1927-12-31 23:54:09&quot;;  
+</code></pre>
+<p>Then <code>ld4-ld3</code> will be <code>1</code>.</p>
+<hr />
+<p><strong>Java version:</strong></p>
+<pre class=""lang-none prettyprint-override""><code>java version &quot;1.6.0_22&quot;
+Java(TM) SE Runtime Environment (build 1.6.0_22-b04)
+Dynamic Code Evolution Client VM (build 0.2-b02-internal, 19.0-b04-internal, mixed mode)
+</code></pre>
+<pre class=""lang-java prettyprint-override""><code>Timezone(`TimeZone.getDefault()`):
+
+sun.util.calendar.ZoneInfo[id=&quot;Asia/Shanghai&quot;,
+offset=28800000,dstSavings=0,
+useDaylight=false,
+transitions=19,
+lastRule=null]
+
+Locale(Locale.getDefault()): zh_CN
+</code></pre>
+","['java', 'date', 'timezone']",1311754558,7605,817327,11,True
+7074,What is the difference between String and string in C#?,"<p>What are the differences between these two, and which one should I use?</p>
+<pre><code>string s = &quot;Hello world!&quot;;
+String s = &quot;Hello world!&quot;;
+</code></pre>
+","['c#', '.net', 'string', 'types', 'alias']",1218352682,7587,1346543,67,True
+208105,How do I remove a property from a JavaScript object?,"<p>Given an object:</p>
+<pre><code>let myObject = {
+  &quot;ircEvent&quot;: &quot;PRIVMSG&quot;,
+  &quot;method&quot;: &quot;newURI&quot;,
+  &quot;regex&quot;: &quot;^http://.*&quot;
+};
+</code></pre>
+<p>How do I remove the property <code>regex</code> to end up with the following <code>myObject</code>?</p>
+<pre><code>let myObject = {
+  &quot;ircEvent&quot;: &quot;PRIVMSG&quot;,
+  &quot;method&quot;: &quot;newURI&quot;
+};
+</code></pre>
+","['javascript', 'object', 'properties']",1224154665,7574,3354989,40,True
+100003,What are metaclasses in Python?,"<p>What are <a href=""https://docs.python.org/3/reference/datamodel.html#metaclasses"" rel=""noreferrer"">metaclasses</a>? What are they used for?</p>
+","['python', 'oop', 'metaclass', 'python-class', 'python-datamodel']",1221804646,7504,1237543,26,True
+1789945,How to check whether a string contains a substring in JavaScript?,"<p>Usually I would expect a <code>String.contains()</code> method, but there doesn't seem to be one. </p>
+
+<p>What is a reasonable way to check for this?</p>
+","['javascript', 'string', 'substring', 'string-matching']",1259067869,7404,8320687,3,True
+82831,How do I check whether a file exists without exceptions?,"<p>How do I check whether a file exists or not, without using the <a href=""https://docs.python.org/3.6/reference/compound_stmts.html#try"" rel=""noreferrer""><code>try</code></a> statement?</p>
+","['python', 'file', 'file-exists']",1221656100,7305,5954227,41,True
+38987,How do I merge two dictionaries in a single expression in Python?,"<p>I want to merge two dictionaries into a new dictionary.</p>
+<pre><code>x = {'a': 1, 'b': 2}
+y = {'b': 3, 'c': 4}
+z = merge(x, y)
+
+&gt;&gt;&gt; z
+{'a': 1, 'b': 3, 'c': 4}
+</code></pre>
+<p>Whenever a key <code>k</code> is present in both dictionaries, only the value <code>y[k]</code> should be kept.</p>
+","['python', 'dictionary', 'merge']",1220341470,7097,3594539,45,True
+2432764,How do I change the URI (URL) for a remote Git repository?,"<p>I have a repo (origin) on a USB key that I cloned on my hard drive (local). I moved &quot;origin&quot; to a NAS and successfully tested cloning it from here.</p>
+<p>I would like to know if I can change the URI of &quot;origin&quot; in the settings of &quot;local&quot; so it will now pull from the NAS, and not from the USB key.</p>
+<p>For now, I can see two solutions:</p>
+<ul>
+<li><p>push everything to the USB origin, and copy it to the NAS again (implies a lot of work due to new commits to NAS origin);</p>
+</li>
+<li><p>add a new remote to &quot;local&quot; and delete the old one (I fear I'll break my history).</p>
+</li>
+</ul>
+","['git', 'url', 'git-remote']",1268398127,6789,5106845,37,True
+14220321,How do I return the response from an asynchronous call?,"<p>How do I return the response/result from a function <code>foo</code> that makes an asynchronous request?</p>
+<p>I am trying to return the value from the callback, as well as assigning the result to a local variable inside the function and returning that one, but none of those ways actually return the response — they all return <code>undefined</code> or whatever the initial value of the variable <code>result</code> is.</p>
+<p><strong>Example of an asynchronous function that accepts a callback</strong> (using jQuery's <code>ajax</code> function):</p>
+<pre><code>function foo() {
+    var result;
+
+    $.ajax({
+        url: '...',
+        success: function(response) {
+            result = response;
+            // return response; // &lt;- I tried that one as well
+        }
+    });
+
+    return result; // It always returns `undefined`
+}
+</code></pre>
+<p><strong>Example using Node.js:</strong></p>
+<pre><code>function foo() {
+    var result;
+
+    fs.readFile(&quot;path/to/file&quot;, function(err, data) {
+        result = data;
+        // return data; // &lt;- I tried that one as well
+    });
+
+    return result; // It always returns `undefined`
+}
+</code></pre>
+<p><strong>Example using the <code>then</code> block of a promise:</strong></p>
+<pre><code>function foo() {
+    var result;
+
+    fetch(url).then(function(response) {
+        result = response;
+        // return response; // &lt;- I tried that one as well
+    });
+
+    return result; // It always returns `undefined`
+}
+</code></pre>
+","['javascript', 'ajax', 'asynchronous']",1357664774,6740,2157322,44,True
+1628563,Move the most recent commit(s) to a new branch with Git,"<p>How do I move my recent commits on <code>master</code> to a new branch, and reset master to before those commits were made? e.g. From this:</p>
+<pre><code>master A - B - C - D - E
+</code></pre>
+<p>To this:</p>
+<pre><code>newbranch     C - D - E
+             /
+master A - B 
+</code></pre>
+","['git', 'git-branch', 'branching-and-merging']",1256612854,6722,1947218,25,True
+630453,What is the difference between POST and PUT in HTTP?,"<p><strong>Background Information Analysis:</strong></p>
+<p>According to <a href=""https://www.rfc-editor.org/rfc/rfc2616#section-9.5"" rel=""noreferrer"">RFC 2616, § 9.5</a>, <code>POST</code> is used to <em>create</em> a resource:</p>
+<blockquote>
+<p>The POST method is used to request that the origin server accept the entity enclosed in the request as a new subordinate of the resource identified by the Request-URI in the Request-Line.</p>
+</blockquote>
+<p>According to <a href=""https://www.rfc-editor.org/rfc/rfc2616#section-9.6"" rel=""noreferrer"">RFC 2616, § 9.6</a>, <code>PUT</code> is used to <em>create or replace</em> a resource:</p>
+<blockquote>
+<p>The PUT method requests that the enclosed entity be stored under the supplied Request-URI. If the Request-URI refers to an already existing resource, the enclosed entity SHOULD be considered as a modified version of the one residing on the origin server. If the Request-URI does not point to an existing resource, and that URI is capable of being defined as a new resource by the requesting user agent, the origin server can create the resource with that URI.</p>
+</blockquote>
+<p><strong>My Question:</strong></p>
+<p>So, which HTTP method should be used to create a resource? Or should both be supported?</p>
+","['http', 'rest', 'post', 'put']",1236695120,6441,3621369,42,True
+52704,How do I discard unstaged changes in Git?,"<p>How do I discard changes in my working copy that are not in the index?</p>
+","['git', 'version-control', 'git-restore']",1220988839,6436,4497588,40,True
+2025282,"What is the difference between px, dip, dp, and sp?","<p>What is the difference between the units of measure
+px, dip, dp, and sp?</p>
+","['android', 'android-layout', 'user-interface', 'dimension', 'units-of-measurement']",1262921026,6425,1523646,35,True
+762011,What is the difference between &quot;let&quot; and &quot;var&quot;?,"<p>ECMAScript 6 introduced <a href=""https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let"" rel=""noreferrer"">the <code>let</code> declaration keyword</a>.</p>
+<p>I've heard that it's described as a local variable, but I'm still not quite sure how it behaves differently than the <code>var</code> keyword.</p>
+<p>What are the differences? When should <code>let</code> be used instead of <code>var</code>?</p>
+","['javascript', 'scope', 'ecmascript-6', 'var', 'let']",1239998966,6383,2390942,38,True
+950087,How do I include a JavaScript file in another JavaScript file?,"<p>How do I include a JavaScript file inside another JavaScript file, similar to <code>@import</code> in CSS?</p>
+","['javascript', 'file', 'import', 'include']",1244116790,6378,4514295,72,True
+59895,How do I get the directory where a Bash script is located from within the script itself?,"<p>How do I get the path of the directory in which a <a href=""http://en.wikipedia.org/wiki/Bash_%28Unix_shell%29"" rel=""noreferrer"">Bash</a> script is located, <em>inside</em> that script?</p>
+<p>I want to use a Bash script as a launcher for another application. I want to change the working directory to the one where the Bash script is located, so I can operate on the files in that directory, like so:</p>
+<pre><code>$ ./application
+</code></pre>
+","['bash', 'directory']",1221251996,6375,2775493,82,True
+89228,How do I execute a program or call a system command?,"<p>How do I call an external command within Python as if I had typed it in a shell or command prompt?</p>
+","['python', 'shell', 'terminal', 'subprocess', 'command']",1221701730,6264,5120732,66,True
+826782,How to disable text selection highlighting,"<p>For anchors that act like buttons (for example, the buttons on the sidebar of this Stack Overflow page titled <em>Questions</em>, <em>Tags</em>, and <em>Users</em>) or tabs, is there a CSS standard way to disable the highlighting effect if the user accidentally selects the text?</p>
+<p>I realize that this could be done with JavaScript and a little googling yielded the Mozilla-only <code>-moz-user-select</code> option.</p>
+<p>Is there a standard-compliant way to accomplish this with CSS, and if not, what is the &quot;best practice&quot; approach?</p>
+","['css', 'cross-browser', 'highlight', 'textselection']",1241555358,6156,2799775,46,True
+1628088,Reset local repository branch to be just like remote repository HEAD,"<p>How do I reset my local branch to be just like the branch on the remote repository?</p>
+<p>I tried:</p>
+<pre><code>git reset --hard HEAD
+</code></pre>
+<p>But <code>git status</code> claims I have modified files:</p>
+<pre><code>On branch master
+Changes to be committed:
+  (use &quot;git reset HEAD &lt;file&gt;...&quot; to unstage)
+      modified:   java/com/mycompany/TestContacts.java
+      modified:   java/com/mycompany/TestParser.java
+</code></pre>
+","['git', 'undo']",1256603240,5942,7074125,26,True
+215718,How can I reset or revert a file to a specific revision?,"<p>How can I revert a modified file to its previous revision at a specific commit hash (which I determined via <a href=""https://git-scm.com/docs/git-log"" rel=""noreferrer""><code>git log</code></a> and <a href=""https://git-scm.com/docs/git-diff"" rel=""noreferrer""><code>git diff</code></a>)?</p>
+","['git', 'version-control', 'git-checkout', 'git-restore']",1224372842,5861,3240890,37,True
+417142,What is the maximum length of a URL in different browsers?,"<ul>
+<li>What is the maximum length of a URL for each browser?</li>
+<li>Is a maximum URL length part of the HTTP specification?</li>
+</ul>
+","['http', 'url', 'browser']",1231258470,5821,1792850,19,True
+2765421,How do I push a new local branch to a remote Git repository and track it too?,"<p>How do I:</p>
+<ol>
+<li><p>Create a local branch from another branch (via <code>git branch</code> or <code>git checkout -b</code>).</p>
+</li>
+<li><p>Push the local branch
+to the remote repository (i.e. publish), but make it
+trackable so that <code>git pull</code> and <code>git push</code> will work.</p>
+</li>
+</ol>
+","['git', 'repository', 'git-branch', 'git-push', 'git-remote']",1272977914,5805,6642051,20,True
+273192,"How do I create a directory, and any missing parent directories?","<p>How do I create a directory at a given path, and also create any missing parent directories along that path? For example, the Bash command <code>mkdir -p /path/to/nested/directory</code> does this.</p>
+","['python', 'exception', 'path', 'directory', 'operating-system']",1226084205,5794,3977243,27,True
+9329446,Loop (for each) over an array in JavaScript,"<p>How can I loop through all the entries in an array using JavaScript?</p>
+","['javascript', 'arrays', 'loops', 'foreach', 'iteration']",1329486708,5791,5480004,41,True
+5189560,How do I squash my last N commits together?,"<p>How do I squash my last N commits together into one commit?</p>
+","['git', 'rebase', 'squash', 'git-squash']",1299211886,5742,4513510,47,True
+4089430,How to determine the URL that a local Git repository was originally cloned from,"<p>I pulled a project with several forks on GitHub, but forgot which fork it was. How do I determine which fork I pulled?</p>
+","['git', 'github', 'git-remote']",1288802866,5681,5314840,26,True
+359494,Which equals operator (== vs ===) should be used in JavaScript comparisons?,"<p>I'm using <a href=""http://en.wikipedia.org/wiki/JSLint"" rel=""noreferrer"">JSLint</a> to go through JavaScript, and it's returning many suggestions to replace <code>==</code> (two equals signs) with <code>===</code> (three equals signs) when doing things like comparing <code>idSele_UNVEHtype.value.length == 0</code> inside of an <code>if</code> statement.</p>
+
+<p>Is there a performance benefit to replacing <code>==</code> with <code>===</code>? </p>
+
+<p>Any performance improvement would be welcomed as many comparison operators exist.</p>
+
+<p>If no type conversion takes place, would there be a performance gain over <code>==</code>?</p>
+","['javascript', 'operators', 'equality', 'equality-operator', 'identity-operator']",1229005189,5644,2209604,47,True
+522563,How can I access the index value in a &#39;for&#39; loop?,"<p>How do I access the index while iterating over a sequence with a <code>for</code> loop?</p>
+<pre class=""lang-py prettyprint-override""><code>xs = [8, 23, 45]
+
+for x in xs:
+    print(&quot;item #{} = {}&quot;.format(index, x))
+</code></pre>
+<p>Desired output:</p>
+<pre class=""lang-none prettyprint-override""><code>item #1 = 8
+item #2 = 23
+item #3 = 45
+</code></pre>
+","['python', 'loops', 'list']",1233960474,5638,4914004,28,True
+22343224,What&#39;s the difference between tilde(~) and caret(^) in package.json?,"<p>After I upgraded to the latest stable <code>node</code> and <code>npm</code>, I tried <code>npm install moment --save</code>. It saves the entry in the <code>package.json</code> with the caret <code>^</code> prefix. Previously, it was a tilde <code>~</code> prefix.</p>
+<ol>
+<li>Why are these changes made in <code>npm</code>?</li>
+<li>What is the difference between tilde <code>~</code> and caret <code>^</code>?</li>
+<li>What are the advantages over previous ones?</li>
+</ol>
+","['node.js', 'npm', 'package.json', 'caret', 'semantic-versioning']",1394604141,5552,2048392,23,True
+1144783,How do I replace all occurrences of a string?,"<p>Given a string:</p>
+<pre><code>string = &quot;Test abc test test abc test test test abc test test abc&quot;;
+</code></pre>
+<p>This seems to only remove the first occurrence of <code>abc</code> in the string above:</p>
+<pre><code>string = string.replace('abc', '');
+</code></pre>
+<p>How do I replace <em>all</em> occurrences of it?</p>
+","['javascript', 'string', 'replace']",1247853226,5512,4617999,50,True
+549,The definitive guide to form-based website authentication,"<blockquote>
+<h4>Moderator note:</h4>
+<p>This question is not a good fit for our question and answer format with the <a href=""/help/on-topic"">topicality rules</a> which currently apply for Stack Overflow. We normally use a &quot;historical lock&quot; for such questions where the content still has value. However, the answers on this question are actively maintained and a historical lock doesn't permit editing of the answers. As such, a &quot;wiki answer&quot; lock has been applied to allow the answers to be edited. You should assume the topicality issues which are normally handled by a historical lock are present (i.e. this question not a good example of an on-topic question for Stack Overflow).</p>
+</blockquote>
+<h2>Form-based authentication for websites</h2>
+<p>We believe that Stack Overflow should not just be a resource for very specific technical questions, but also for general guidelines on how to solve variations on common problems. &quot;Form based authentication for websites&quot; should be a fine topic for such an experiment.</p>
+<h3>It should include topics such as:</h3>
+<ul>
+<li>How to log in</li>
+<li>How to log out</li>
+<li>How to remain logged in</li>
+<li>Managing cookies (including recommended settings)</li>
+<li>SSL/HTTPS encryption</li>
+<li>How to store passwords</li>
+<li>Using secret questions</li>
+<li>Forgotten username/password functionality</li>
+<li>Use of <a href=""https://en.wikipedia.org/wiki/Cryptographic_nonce"" rel=""nofollow noreferrer"">nonces</a> to prevent <a href=""https://en.wikipedia.org/wiki/Cross-site_request_forgery"" rel=""nofollow noreferrer"">cross-site request forgeries (CSRF)</a></li>
+<li><a href=""http://openid.net/"" rel=""nofollow noreferrer"">OpenID</a></li>
+<li>&quot;Remember me&quot; checkbox</li>
+<li>Browser autocompletion of usernames and passwords</li>
+<li>Secret URLs (public <a href=""https://en.wikipedia.org/wiki/Uniform_Resource_Locator"" rel=""nofollow noreferrer"">URL</a> protected by digest)</li>
+<li>Checking password strength</li>
+<li>E-mail validation</li>
+<li><em>and much more about</em> <a href=""http://en.wikipedia.org/wiki/Form-based_authentication"" rel=""nofollow noreferrer"">form based authentication</a>...</li>
+</ul>
+<h3>It should not include things like:</h3>
+<ul>
+<li>Roles and authorization</li>
+<li>HTTP basic authentication</li>
+</ul>
+<h3>Please help us by:</h3>
+<ol>
+<li>Suggesting subtopics</li>
+<li>Submitting good articles about this subject</li>
+<li>Editing the official answer</li>
+</ol>
+","['forms', 'http', 'security', 'authentication', 'language-agnostic']",1217706710,5510,698327,11,True
+115983,How do I add an empty directory to a Git repository?,"<p>How do I add an empty directory (that contains no files) to a Git repository?</p>
+","['git', 'directory', 'git-add']",1222101663,5492,1696016,37,True
+11828270,How do I exit Vim?,"<p>I am stuck and cannot escape. It says:</p>
+<pre><code>type :quit&lt;Enter&gt; to quit VIM
+</code></pre>
+<p>But when I type that it simply appears in the object body.</p>
+","['vim', 'vi']",1344255947,5485,3226536,13,True
+105034,How do I create a GUID / UUID?,"<p>How do I create GUIDs (globally-unique identifiers) in JavaScript? The GUID / UUID should be at least 32 characters and should stay in the ASCII range to avoid trouble when passing them around.</p>
+<p>I'm not sure what routines are available on all browsers, how &quot;random&quot; and seeded the built-in random number generator is, etc.</p>
+","['javascript', 'guid', 'uuid']",1221854460,5479,3264776,76,True
+952914,How do I make a flat list out of a list of lists?,"<p>I have a list of lists like</p>
+<pre><code>[
+    [1, 2, 3],
+    [4, 5, 6],
+    [7],
+    [8, 9]
+]
+</code></pre>
+<p>How can I flatten it to get <code>[1, 2, 3, 4, 5, 6, 7, 8, 9]</code>?</p>
+<hr />
+<p><sub>If your list of lists comes from a nested list comprehension, the problem can be solved more simply/directly by fixing the comprehension; please see <a href=""https://stackoverflow.com/questions/1077015"">How can I get a flat result from a list comprehension instead of a nested list?</a>.</sub></p>
+<p><sub>The most popular solutions here generally only flatten one &quot;level&quot; of the nested list. See <a href=""https://stackoverflow.com/questions/2158395"">Flatten an irregular (arbitrarily nested) list of lists</a> for solutions that completely flatten a deeply nested structure (recursively, in general).</sub></p>
+","['python', 'list', 'multidimensional-array', 'flatten']",1244147405,5474,4601019,34,True
+46155,How can I validate an email address in JavaScript?,"<p>I'd like to check if the user input is an email address in JavaScript, before sending it to a server or attempting to send an email to it, to prevent the most basic mistyping. How could I achieve this?</p>
+","['javascript', 'html', 'regex', 'email-validation']",1220631011,5469,4893848,78,True
+406230,Regular expression to match a line that doesn&#39;t contain a word,"<p>I know it's possible to match a word and then reverse the matches using other tools (e.g. <code>grep -v</code>). However, is it possible to match lines that do not contain a specific word, e.g. <code>hede</code>, using a regular expression?</p>
+<h5>Input:</h5>
+<pre><code>hoho
+hihi
+haha
+hede
+</code></pre>
+<h5>Code:</h5>
+<pre class=""lang-bash prettyprint-override""><code>grep &quot;&lt;Regex for 'doesn't contain hede'&gt;&quot; input
+</code></pre>
+<h5>Desired output:</h5>
+<pre><code>hoho
+hihi
+haha
+</code></pre>
+","['regex', 'regex-negation']",1230881416,5458,5410834,35,True
+161813,How do I resolve merge conflicts in a Git repository?,"<p>How do I resolve merge conflicts in my Git repository?</p>
+","['git', 'git-merge', 'merge-conflict-resolution', 'git-merge-conflict']",1222947065,5430,3743288,37,True
+487258,What is a plain English explanation of &quot;Big O&quot; notation?,"<p>I'd prefer as little formal definition as possible and simple mathematics.</p>
+","['algorithm', 'complexity-theory', 'computer-science', 'big-o', 'time-complexity']",1233141032,5395,847175,43,True
+1026069,How do I make the first letter of a string uppercase in JavaScript?,"<p>How do I make the first character of a string uppercase if it's a letter, but not change the case of any of the other letters?</p>
+<p>For example:</p>
+<ul>
+<li><code>&quot;this is a test&quot;</code> → <code>&quot;This is a test&quot;</code></li>
+<li><code>&quot;the Eiffel Tower&quot;</code> → <code>&quot;The Eiffel Tower&quot;</code></li>
+<li><code>&quot;/index.html&quot;</code> → <code>&quot;/index.html&quot;</code></li>
+</ul>
+","['javascript', 'string', 'uppercase']",1245659131,5385,4530550,106,True
+38549,What is the difference between INNER JOIN and OUTER JOIN?,"<p>What is the difference between <code>INNER JOIN</code> and <code>OUTER JOIN</code>?</p>
+<p>How do <code>LEFT OUTER JOIN</code>, <code>RIGHT OUTER JOIN</code>, and <code>FULL OUTER JOIN</code> fit in?</p>
+","['sql', 'join', 'inner-join', 'outer-join']",1220308566,5280,2695056,26,True
+901712,How do I check whether a checkbox is checked in jQuery?,"<p>I need to check the <code>checked</code> property of a checkbox and perform an action based on the checked property using jQuery.</p>
+<p>For example, if the <code>age</code> checkbox is checked, then I need to show a textbox to enter <code>age</code>, else hide the textbox.</p>
+<p>But the following code returns <code>false</code> by default:</p>
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""true"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-js lang-js prettyprint-override""><code>if ($('#isAgeSelected').attr('checked')) {
+  $(""#txtAge"").show();
+} else {
+  $(""#txtAge"").hide();
+}</code></pre>
+<pre class=""snippet-code-html lang-html prettyprint-override""><code>&lt;script src=""https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js""&gt;&lt;/script&gt;
+&lt;input type=""checkbox"" id=""isAgeSelected""/&gt;
+&lt;div id=""txtAge"" style=""display:none""&gt;
+  Age is selected
+&lt;/div&gt;</code></pre>
+</div>
+</div>
+</p>
+<p>How do I successfully query the <code>checked</code> property?</p>
+","['javascript', 'jquery', 'html', 'checkbox']",1243091799,5228,4947249,68,True
+122102,What is the most efficient way to deep clone an object in JavaScript?,"<p>What is the most efficient way to clone a JavaScript object? I've seen <code>obj = eval(uneval(o));</code> being used, but <a href=""https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/uneval"" rel=""noreferrer"">that's non-standard and only supported by Firefox</a>.<br/><br/> I've done things like <code>obj = JSON.parse(JSON.stringify(o));</code> but question the efficiency. <br/><br/> I've also seen recursive copying functions with various flaws.
+<br />
+I'm surprised no canonical solution exists.</p>
+","['javascript', 'object', 'clone']",1222187169,5157,3044155,67,True
+3737139,Reference Guide: What does this symbol mean in PHP? (PHP Syntax),"<h3>What is this?</h3>
+<p>This is a collection of questions that come up now and then about syntax in PHP. This is also a Community Wiki, so everyone is invited to participate in maintaining this list.</p>
+<p><strong>This question shouldn't be used as a dupe target for closing questions.</strong> Use  actual questions linked here as dupe targets instead.</p>
+<h3>Why is this?</h3>
+<p>It used to be hard to find questions about operators and other syntax tokens.¹<br />
+The main idea is to have links to existing questions on Stack Overflow, so it's easier for us to reference them, and not to copy over content from the PHP Manual.</p>
+<p>Note: Since January 2013, Stack Overflow <a href=""https://meta.stackexchange.com/questions/160100/a-new-search-engine-for-stack-exchange"">does support special characters</a>. Just surround the search terms by quotes, e.g. <a href=""https://stackoverflow.com/search?q=%5Bphp%5D%20%22===%22%20vs%20%22==%22""><code>[php] &quot;==&quot; vs &quot;===&quot;</code></a></p>
+<h3><strong>What should I do here?</strong></h3>
+<p>If you have been pointed here by someone because you have asked such a question, please find the particular syntax below. The linked pages to the <a href=""http://php.net/manual/en/index.php"" rel=""noreferrer"">PHP manual</a> along with the linked questions will likely answer your question then. If so, you are encouraged to upvote the answer. This list is not meant as a substitute for the help others provide.</p>
+<h2>The List</h2>
+<p>If your particular token is not listed below, you might find it in the <a href=""http://secure.php.net/manual/en/tokens.php"" rel=""noreferrer"">List of Parser Tokens</a>.</p>
+<hr />
+<p><code>&amp;</code> <a href=""http://secure.php.net/manual/en/language.operators.bitwise.php"" rel=""noreferrer"">Bitwise Operators</a> or <a href=""http://secure.php.net/manual/en/language.references.php"" rel=""noreferrer"">References</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/1676897"">What does it mean to start a PHP function with an ampersand?</a></li>
+<li><a href=""https://stackoverflow.com/questions/600202"">Understanding PHP &amp; (ampersand, bitwise and) operator</a></li>
+<li><a href=""https://stackoverflow.com/questions/2209934/"">PHP &quot;&amp;&quot; operator</a></li>
+<li><a href=""https://stackoverflow.com/questions/2376348"">Difference between &amp; and &amp;&amp; in PHP</a></li>
+<li><a href=""https://stackoverflow.com/questions/1006652"">What does &quot;&amp;&quot; mean here in PHP?</a></li>
+<li><a href=""https://stackoverflow.com/questions/2297592"">What does &quot;&amp;&quot; mean in this case?</a></li>
+<li><a href=""https://stackoverflow.com/questions/2422907"">What does the &quot;&amp;&quot; sign mean in PHP?</a></li>
+<li><a href=""https://stackoverflow.com/questions/2478149"">What does this signature mean (&amp;) in PHP?</a></li>
+<li><a href=""https://stackoverflow.com/questions/3957584"">How does the &quot;&amp;&quot; operator work in a PHP function?</a></li>
+<li><a href=""https://stackoverflow.com/questions/4705262"">What does &amp; in &amp;2 mean in PHP?</a></li>
+<li><a href=""https://stackoverflow.com/questions/4705838"">When should I use a bitwise operator?</a></li>
+<li><a href=""https://stackoverflow.com/questions/21058439"">Is there ever a need to use ampersand in front of an object?</a> (&amp;$)</li>
+</ul>
+<hr />
+<p><code>=&amp;</code> <a href=""http://secure.php.net/manual/en/language.references.php"" rel=""noreferrer"">References</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/1768343"">Reference assignment operator in PHP, =&amp;</a></li>
+<li><a href=""https://stackoverflow.com/questions/1367454"">What do the &quot;=&amp;&quot; and &quot;&amp;=&quot; operators in PHP mean?</a></li>
+<li><a href=""https://stackoverflow.com/questions/3177342"">What do the &#39;&amp;=&#39; and &#39;=&amp;&#39; operators do?</a></li>
+<li><a href=""https://stackoverflow.com/questions/2081806"">What does =&amp; mean in PHP?</a></li>
+</ul>
+<hr />
+<p><code>&amp;=</code> <a href=""http://secure.php.net/manual/en/language.operators.bitwise.php"" rel=""noreferrer"">Bitwise Operators</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/1367454"">What do the &quot;=&amp;&quot; and &quot;&amp;=&quot; operators in PHP mean?</a></li>
+<li><a href=""https://stackoverflow.com/questions/3177342"">What do the &#39;&amp;=&#39; and &#39;=&amp;&#39; operators do?</a></li>
+</ul>
+<hr />
+<p><code>&amp;&amp;</code> <a href=""http://secure.php.net/manual/en/language.operators.logical.php"" rel=""noreferrer"">Logical Operators</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/2803321"">&#39;AND&#39; vs &#39;&amp;&amp;&#39; as operator</a></li>
+<li><a href=""https://stackoverflow.com/questions/2376348"">Difference between &amp; and &amp;&amp; in PHP</a></li>
+<li><a href=""https://stackoverflow.com/questions/4746865"">Is there any difference between &quot;and&quot; and &quot;&amp;&amp;&quot; operators in PHP?</a></li>
+<li><a href=""https://stackoverflow.com/questions/4502092"">PHP - and / or keywords</a></li>
+</ul>
+<hr />
+<p><code>%</code> <a href=""http://secure.php.net/manual/en/language.operators.arithmetic.php"" rel=""noreferrer"">Arithmetic Operators</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/1934173"">What does the percent sign mean in PHP?</a></li>
+<li><a href=""https://stackoverflow.com/questions/3204919"">What is the PHP operator % and how do I use it in real-world examples?</a></li>
+</ul>
+<hr />
+<p><code>!!</code> <a href=""http://secure.php.net/manual/en/language.operators.logical.php"" rel=""noreferrer"">Logical Operators</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/2127260"">Double not (!!) operator in PHP</a></li>
+</ul>
+<hr />
+<p><code>@</code> <a href=""http://secure.php.net/manual/en/language.operators.errorcontrol.php"" rel=""noreferrer"">Error Control Operators</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/1032161"">What is the use of the @ symbol in PHP?</a></li>
+<li><a href=""https://stackoverflow.com/questions/3551527"">&#39;At&#39; symbol before variable name in PHP: @$_POST</a></li>
+<li><a href=""https://stackoverflow.com/questions/3984864"">PHP functions and @functions</a></li>
+<li><a href=""https://stackoverflow.com/questions/4872340"">Should I use @ in my PHP code?</a></li>
+<li><a href=""https://stackoverflow.com/questions/3621215"">What does @ mean in PHP?</a></li>
+</ul>
+<hr />
+<p><code>?:</code> <a href=""http://php.net/manual/en/language.operators.comparison.php#language.operators.comparison.ternary"" rel=""noreferrer"">Ternary Operator</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/1080247"">What are the PHP operators &quot;?&quot; and &quot;:&quot; called and what do they do?</a></li>
+<li><a href=""https://stackoverflow.com/questions/1993409"">?: operator (the &#39;Elvis operator&#39;) in PHP</a></li>
+<li><a href=""https://stackoverflow.com/questions/4055355"">Where can I read about conditionals done with &quot;?&quot; and &quot;:&quot; (colon)?</a></li>
+<li><a href=""https://stackoverflow.com/questions/4210187"">Using PHP 5.3 ?: operator</a></li>
+</ul>
+<hr />
+<p>Double question mark</p>
+<p><code>??</code> <a href=""https://www.php.net/manual/en/migration70.new-features.php#migration70.new-features.null-coalesce-op"" rel=""noreferrer"">Null Coalesce Operator</a> (since PHP 7)</p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/7278835"">C#&#39;s null coalescing operator (??) in PHP</a></li>
+</ul>
+<hr />
+<p>A question mark followed by a type declaration</p>
+<p><code>?string</code>
+<code>?int</code>
+<code>?array</code>
+<code>?bool</code>
+<code>?float</code> <a href=""https://www.php.net/manual/en/migration71.new-features.php"" rel=""noreferrer"">Nullable type declaration</a> (since PHP 7.1)</p>
+<ul>
+<li><a href=""https://stackoverflow.com/a/48450841"">How to use a nullable type</a></li>
+<li><a href=""https://stackoverflow.com/a/54217328/250259"">Nullable return type declaration</a></li>
+</ul>
+<hr />
+<p><code>?-&gt;</code> question mark followed by object operator is a <a href=""https://stackoverflow.com/a/62178856/250259"">NullSafe Operator</a> (since PHP 8.0)</p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/12351737/is-there-a-nullsafe-operator-in-php"">Is there a &quot;nullsafe operator&quot; in PHP?</a></li>
+</ul>
+<hr />
+<p><code>:</code> <a href=""http://secure.php.net/manual/en/control-structures.alternative-syntax.php"" rel=""noreferrer"">Alternative syntax for control structures</a>, <a href=""http://php.net/manual/en/language.operators.comparison.php#language.operators.comparison.ternary"" rel=""noreferrer"">Ternary Operator</a>, <a href=""https://www.php.net/manual/en/language.types.declarations.php"" rel=""noreferrer"">Return Type Declaration</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/2908095"">What is &quot;:&quot; in PHP?</a></li>
+<li><a href=""https://stackoverflow.com/questions/4747761"">What does &quot;:&quot; mean in PHP?</a></li>
+<li><a href=""https://stackoverflow.com/questions/40346754"">Colon after method declaration?</a></li>
+</ul>
+<hr />
+<p><code>::</code> <a href=""http://secure.php.net/manual/en/language.oop5.paamayim-nekudotayim.php"" rel=""noreferrer"">Scope Resolution Operator</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/2903564"">What do two colons mean in PHP?</a></li>
+<li><a href=""https://stackoverflow.com/questions/2588298"">What&#39;s the meaning of the PHP token name T_PAAMAYIM_NEKUDOTAYIM?</a></li>
+<li><a href=""https://stackoverflow.com/questions/3173501"">What&#39;s the difference between :: (double colon) and -&gt; (arrow) in PHP?</a></li>
+<li><a href=""https://stackoverflow.com/questions/1912902"">What exactly are late static bindings in PHP?</a></li>
+<li><a href=""https://stackoverflow.com/questions/4120755"">static::staticFunctionName()</a></li>
+<li><a href=""https://stackoverflow.com/questions/8734823"">Unexpected T_PAAMAYIM_NEKUDOTAYIM, expecting T_NS_Separator</a></li>
+</ul>
+<hr />
+<p><code>\</code> <a href=""http://php.net/namespaces"" rel=""noreferrer"">Namespaces</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/10788400"">Backslash in PHP -- what does it mean?</a></li>
+<li><a href=""https://stackoverflow.com/questions/4790020"">What does a \ (backslash) in front of function names mean?</a></li>
+</ul>
+<hr />
+<p><code>-&gt;</code> <a href=""http://secure.php.net/manual/en/language.oop5.php"" rel=""noreferrer"">Classes And Objects</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/2588149"">What is the &quot;-&gt;&quot; PHP operator called?</a></li>
+<li><a href=""https://stackoverflow.com/questions/3037526"">Where do we use the object operator &quot;-&gt;&quot; in PHP?</a></li>
+<li><a href=""https://stackoverflow.com/questions/3173501"">What&#39;s the difference between :: (double colon) and -&gt; (arrow) in PHP?</a></li>
+<li><a href=""https://stackoverflow.com/questions/2316370"">What does the PHP syntax $var1-&gt;$var2 mean?</a></li>
+<li><a href=""https://stackoverflow.com/questions/4502587"">What does &quot;-&gt;&quot; mean/refer to in PHP?</a></li>
+</ul>
+<hr />
+<p><code>=&gt;</code> <a href=""http://secure.php.net/manual/en/language.types.array.php"" rel=""noreferrer"">Arrays</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/1241819"">What does &quot;=&gt;&quot; mean in PHP?</a></li>
+<li><a href=""https://stackoverflow.com/questions/1655336"">Use of =&gt; in PHP</a></li>
+<li><a href=""https://stackoverflow.com/questions/4758791"">What does $k =&gt; $v in foreach($ex as $k=&gt;$v) mean?</a></li>
+</ul>
+<hr />
+<p><code>^</code> <a href=""http://secure.php.net/manual/en/language.operators.bitwise.php"" rel=""noreferrer"">Bitwise Operators</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/2674920"">How does the bitwise operator XOR (&#39;^&#39;) work?</a></li>
+<li><a href=""https://stackoverflow.com/questions/2724936"">What does ^ mean in PHP?</a></li>
+</ul>
+<hr />
+<p><code>&gt;&gt;</code> <a href=""http://secure.php.net/manual/en/language.operators.bitwise.php"" rel=""noreferrer"">Bitwise Operators</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/2790329"">What does &gt;&gt; mean in PHP?</a></li>
+</ul>
+<hr />
+<p><code>&lt;&lt;</code> <a href=""http://secure.php.net/manual/en/language.operators.bitwise.php"" rel=""noreferrer"">Bitwise Operators</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/9718689/strange-print-behaviour-in-php"">Strange print behaviour in PHP?</a></li>
+</ul>
+<hr />
+<p><code>&lt;&lt;&lt;</code> <a href=""http://php.net/manual/en/language.types.string.php#language.types.string.syntax.heredoc"" rel=""noreferrer"">Heredoc or Nowdoc</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/5539669"">What does &lt;&lt;&lt;END mean in PHP?</a></li>
+<li><a href=""https://stackoverflow.com/questions/1048481"">PHP expression &lt;&lt;&lt;EOB</a></li>
+<li><a href=""https://stackoverflow.com/questions/3700042"">In PHP, what does &quot;&lt;&lt;&lt;&quot; represent?</a></li>
+<li><a href=""https://stackoverflow.com/questions/2090081"">Using &lt;&lt;&lt;CON in PHP</a></li>
+<li><a href=""https://stackoverflow.com/questions/2333779"">What&#39;s this kind of syntax in PHP?</a></li>
+</ul>
+<hr />
+<p><code>=</code> <a href=""http://secure.php.net/manual/en/language.operators.assignment.php"" rel=""noreferrer"">Assignment Operators</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/2063480"">The 3 different equals</a></li>
+</ul>
+<hr />
+<p><code>==</code> <a href=""http://secure.php.net/manual/en/language.operators.comparison.php"" rel=""noreferrer"">Comparison Operators</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/80646"">How do the PHP equality (== double equals) and identity (=== triple equals) comparison operators differ?</a></li>
+<li><a href=""https://stackoverflow.com/questions/1663451"">PHP != and == operators</a></li>
+<li><a href=""https://stackoverflow.com/questions/2063480"">The 3 different equals</a></li>
+<li><a href=""https://stackoverflow.com/questions/15813490/"">Type-juggling and (strict) greater/lesser-than comparisons in PHP</a></li>
+</ul>
+<hr />
+<p><code>===</code> <a href=""http://secure.php.net/manual/en/language.operators.comparison.php"" rel=""noreferrer"">Comparison Operators</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/1117967"">What does &quot;===&quot; mean?</a></li>
+<li><a href=""https://stackoverflow.com/questions/80646"">How do the PHP equality (== double equals) and identity (=== triple equals) comparison operators differ?</a></li>
+<li><a href=""https://stackoverflow.com/questions/2063480"">The 3 different equals</a></li>
+<li><a href=""https://stackoverflow.com/questions/15813490/"">Type-juggling and (strict) greater/lesser-than comparisons in PHP</a></li>
+</ul>
+<hr />
+<p><code>!==</code> <a href=""http://secure.php.net/manual/en/language.operators.comparison.php"" rel=""noreferrer"">Comparison Operators</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/1298083"">What does !== comparison operator in PHP mean?</a></li>
+<li><a href=""https://stackoverflow.com/questions/1139154"">Is there a difference between !== and != in PHP?</a></li>
+</ul>
+<hr />
+<p><code>!=</code> <a href=""http://secure.php.net/manual/en/language.operators.comparison.php"" rel=""noreferrer"">Comparison Operators</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/1663451"">PHP != and == operators</a></li>
+<li><a href=""https://stackoverflow.com/questions/1139154"">Is there a difference between !== and != in PHP?</a></li>
+<li><a href=""https://stackoverflow.com/questions/6356826"">comparing, !== versus !=</a></li>
+<li><a href=""https://stackoverflow.com/questions/9671785/what-is-the-difference-between-and"">What is the difference between &lt;&gt; and !=</a></li>
+</ul>
+<hr />
+<p><code>&lt;&gt;</code> <a href=""http://secure.php.net/manual/en/language.operators.comparison.php"" rel=""noreferrer"">Comparison Operators</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/249312"">PHP operator &lt;&gt;</a></li>
+<li><a href=""https://stackoverflow.com/questions/589391"">https://stackoverflow.com/questions/589391</a></li>
+<li><a href=""https://stackoverflow.com/questions/9671785"">What is the difference between &lt;&gt; and !=</a></li>
+<li><a href=""https://stackoverflow.com/questions/15813490/"">Type-juggling and (strict) greater/lesser-than comparisons in PHP</a></li>
+</ul>
+<hr />
+<p><code>&lt;=&gt;</code> <a href=""http://secure.php.net/manual/en/language.operators.comparison.php"" rel=""noreferrer"">Comparison Operators</a> (since PHP 7.0)</p>
+<ul>
+<li><a href=""https://stackoverflow.com/a/31298778"">Spaceship (three way comparison) operator</a></li>
+</ul>
+<hr />
+<p><code>|</code> <a href=""http://secure.php.net/manual/en/language.operators.bitwise.php"" rel=""noreferrer"">Bitwise Operators</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/2233835"">What is the difference between the | and || operators?</a></li>
+<li><a href=""https://stackoverflow.com/questions/13811922"">What Does Using A Single Pipe &#39;|&#39; In A Function Argument Do?</a></li>
+</ul>
+<hr />
+<p><code>||</code> <a href=""http://secure.php.net/manual/en/language.operators.logical.php"" rel=""noreferrer"">Logical Operators</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/2233835"">What is the difference between the | and || operators?</a></li>
+<li><a href=""https://stackoverflow.com/questions/4502092"">PHP - and / or keywords</a></li>
+<li><a href=""https://stackoverflow.com/questions/5666741"">What exactly does || mean?</a></li>
+<li><a href=""https://stackoverflow.com/questions/12213283"">The behaviour of the or operator in PHP</a></li>
+</ul>
+<hr />
+<p><code>~</code> <a href=""http://secure.php.net/manual/en/language.operators.bitwise.php"" rel=""noreferrer"">Bitwise Operators</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/1967360"">What does this ~ operator mean here?</a></li>
+</ul>
+<hr />
+<p><code>+</code> <a href=""http://secure.php.net/manual/en/language.operators.arithmetic.php"" rel=""noreferrer"">Arithmetic Operators</a>, <a href=""http://secure.php.net/manual/en/language.operators.array.php"" rel=""noreferrer"">Array Operators</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/2140090"">Merging two arrays with the &quot;+&quot; (array union operator) How does it work?</a></li>
+</ul>
+<hr />
+<p><code>+=</code> and <code>-=</code> <a href=""http://secure.php.net/manual/en/language.operators.assignment.php"" rel=""noreferrer"">Assignment Operators</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/542995"">What is += used for?</a></li>
+<li><a href=""https://stackoverflow.com/questions/7140158"">What does `$page -= 1` in my PHP document mean?</a></li>
+</ul>
+<hr />
+<p><code>++</code> and <code>--</code> <a href=""http://secure.php.net/manual/en/language.operators.increment.php"" rel=""noreferrer"">Incrementing/Decrementing Operators</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/1968371"">Understanding Incrementing</a></li>
+<li><a href=""https://stackoverflow.com/a/3737177"">Answer below</a></li>
+</ul>
+<hr />
+<p><code>.=</code> <a href=""http://secure.php.net/manual/en/language.operators.assignment.php"" rel=""noreferrer"">Assignment Operators</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/2202331"">What is the difference between .= and += in PHP?</a></li>
+<li><a href=""https://stackoverflow.com/questions/1241432"">What is the .= (dot equals) operator in PHP?</a></li>
+</ul>
+<hr />
+<p><code>.</code> <a href=""http://secure.php.net/manual/en/language.operators.string.php"" rel=""noreferrer"">String Operators</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/1466408"">Difference between period and comma when concatenating with echo versus return?</a></li>
+<li><a href=""https://stackoverflow.com/questions/6484968"">What does a . (dot) do in PHP?</a></li>
+</ul>
+<hr />
+<p><code>,</code> <a href=""http://php.net/manual/en/functions.arguments.php"" rel=""noreferrer"">Function Arguments</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/1466408"">Difference between period and comma when concatenating with echo versus return?</a></li>
+</ul>
+<p><code>,</code> <a href=""http://php.net/manual/en/language.variables.scope.php"" rel=""noreferrer"">Variable Declarations</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/41383218"">What do commas mean in a variable declaration?</a></li>
+</ul>
+<hr />
+<p><code>$$</code> <a href=""http://php.net/manual/en/language.variables.variable.php"" rel=""noreferrer"">Variable Variables</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/2715654"">What does $$ (dollar dollar or double dollar) mean in PHP?</a></li>
+<li><a href=""https://stackoverflow.com/questions/4169882"">what is &quot;$$&quot; in PHP</a></li>
+<li><a href=""https://stackoverflow.com/questions/4891872"">$function() and $$variable</a></li>
+</ul>
+<hr />
+<p><code>`</code> <a href=""http://php.net/manual/en/language.operators.execution.php"" rel=""noreferrer"">Execution Operator</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/6002296"">What are the backticks `` called?</a></li>
+</ul>
+<hr />
+<p><code>&lt;?=</code> <a href=""http://php.net/manual/en/ini.core.php#ini.short-open-tag"" rel=""noreferrer"">Short Open Tags</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/1963901"">What does this symbol mean in PHP &lt;?=</a></li>
+<li><a href=""https://stackoverflow.com/questions/2020445"">What does &#39;&lt;?=&#39; mean in PHP?</a></li>
+<li><a href=""https://stackoverflow.com/questions/1959256/what-does-mean"">What does &lt;?= mean?</a></li>
+</ul>
+<hr />
+<p><code>[]</code> <a href=""http://secure.php.net/manual/en/language.types.array.php"" rel=""noreferrer"">Arrays</a> (short syntax since PHP 5.4)</p>
+<ul>
+<li><a href=""https://stackoverflow.com/q/20709055/2758197"">PHP arrays... What is/are the meaning(s) of an empty bracket?</a></li>
+<li><a href=""https://stackoverflow.com/questions/6933345"">What is the meaning of []</a></li>
+<li><a href=""https://stackoverflow.com/questions/2431629"">Php array_push() vs myArray[]</a></li>
+<li><a href=""https://stackoverflow.com/questions/3908576"">What does [] mean when reading from a PHP array?</a></li>
+<li><a href=""https://stackoverflow.com/questions/4271874"">Shorthand for arrays: literal <code>$var = []</code> empty array</a></li>
+</ul>
+<hr />
+<p><code>&lt;?</code> <a href=""http://secure.php.net/manual/en/language.basic-syntax.php"" rel=""noreferrer"">Opening and Closing tags</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/200640"">Are PHP short tags acceptable to use?</a></li>
+</ul>
+<hr />
+<p><code>..</code> Double-dot character range</p>
+<ul>
+<li><a href=""https://stackoverflow.com/q/72865138/2943403"">Native PHP functions that allow double-dot range syntax</a></li>
+</ul>
+<hr />
+<p><code>...</code> <a href=""http://php.net/manual/en/functions.arguments.php#functions.variable-arg-list"" rel=""noreferrer"">Argument unpacking</a> (since PHP 5.6)</p>
+<hr />
+<p><code>**</code> <a href=""http://secure.php.net/manual/en/migration56.new-features.php#migration56.new-features.exponentiation"" rel=""noreferrer"">Exponentiation</a> (since PHP 5.6)</p>
+<hr />
+<p><code>#</code> <a href=""http://php.net/manual/en/language.basic-syntax.comments.php"" rel=""noreferrer"">One-line shell-style comment</a></p>
+<ul>
+<li><a href=""https://stackoverflow.com/questions/9093609/can-i-use-hashes-for-comments-in-php"">Can I use hashes for comments in PHP?</a></li>
+</ul>
+<hr />
+<p><code>#[]</code> <a href=""https://stackoverflow.com/a/71641821/6660678"">Attributes</a> (since PHP 8)</p>
+<hr />
+","['php', 'arguments', 'operators', 'symbols', 'semantics']",1284740647,5132,848592,24,True
+114543,How can I horizontally center an element?,"<p>How can I horizontally center a <code>&lt;div&gt;</code> within another <code>&lt;div&gt;</code> using CSS?</p>
+<pre class=""lang-html prettyprint-override""><code>&lt;div id=&quot;outer&quot;&gt;
+  &lt;div id=&quot;inner&quot;&gt;Foo foo&lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+
+","['html', 'css', 'alignment', 'centering']",1222086477,5100,4990379,128,True
+5480258,How can I delete a remote tag?,"<p>How can I delete a Git tag that has already been pushed?</p>
+","['git', 'git-tag']",1301442116,5055,2486832,28,True
+176264,"What is the difference between a URI, a URL, and a URN?","<p>What is the difference between a <a href=""http://en.wikipedia.org/wiki/Uniform_Resource_Locator"" rel=""noreferrer""><strong>URL</strong></a>, a <a href=""http://en.wikipedia.org/wiki/Uniform_Resource_Identifier"" rel=""noreferrer""><strong>URI</strong></a>, and a <a href=""http://en.wikipedia.org/wiki/Uniform_Resource_Name"" rel=""noreferrer""><strong>URN</strong></a>?</p>
+","['http', 'url', 'uri', 'urn', 'rfc3986']",1223328418,5022,1369849,31,True
+237104,How do I check if an array includes a value in JavaScript?,"<p>What is the most concise and efficient way to find out if a JavaScript array contains a value?</p>
+<p>This is the only way I know to do it:</p>
+<pre><code>function contains(a, obj) {
+    for (var i = 0; i &lt; a.length; i++) {
+        if (a[i] === obj) {
+            return true;
+        }
+    }
+    return false;
+}
+</code></pre>
+<p>Is there a better and more concise way to accomplish this?</p>
+<p>This is very closely related to Stack Overflow question <em><a href=""https://stackoverflow.com/questions/143847/best-way-to-find-an-item-in-a-javascript-array"">Best way to find an item in a JavaScript Array?</a></em> which addresses finding objects in an array using <code>indexOf</code>.</p>
+","['javascript', 'arrays', 'algorithm', 'time-complexity', 'javascript-objects']",1224972880,4993,3700776,63,True
+2389361,Undo a Git merge that hasn&#39;t been pushed yet,"<p>I accidentally ran <code>git merge some_other_branch</code> on my local master branch. I haven't pushed the changes to origin master. How do I undo the merge?</p>
+<hr />
+<p>After merging, <code>git status</code> says:</p>
+<pre><code># On branch master
+# Your branch is ahead of 'origin/master' by 5 commits.
+</code></pre>
+<p>How do I undo all these commits?</p>
+","['git', 'undo', 'git-merge']",1267817084,4966,3434666,35,True
+221294,How do I get a timestamp in JavaScript?,"<p>I want a single number that represents the current date and time, like a <a href=""https://en.wikipedia.org/wiki/Unix_time"" rel=""noreferrer"">Unix timestamp</a>.</p>
+","['javascript', 'datetime', 'timestamp', 'date-arithmetic']",1224581373,4921,4601181,39,True
+67699,How do I clone all remote branches?,"<p>My <code>master</code> and <code>development</code> branches are tracked remotely on <a href=""http://en.wikipedia.org/wiki/GitHub"" rel=""noreferrer"">GitHub</a>. How do I clone both these branches?</p>
+","['git', 'git-branch', 'git-clone', 'remote-branch']",1221518527,4829,1875945,50,True
+4456438,How to pass &quot;Null&quot; (a real surname!) to a SOAP web service in ActionScript 3,"<p>We have an employee whose surname is Null. Our employee lookup application is killed when that last name is used as the search term (which happens to be quite often now). The error received is:</p>
+<pre class=""lang-none prettyprint-override""><code>&lt;soapenv:Fault&gt;
+   &lt;faultcode&gt;soapenv:Server.userException&lt;/faultcode&gt;
+   &lt;faultstring&gt;coldfusion.xml.rpc.CFCInvocationException: [coldfusion.runtime.MissingArgumentException : The SEARCHSTRING parameter to the getFacultyNames function is required but was not passed in.]&lt;/faultstring&gt;
+</code></pre>
+<p>The parameter type is <code>string</code>.</p>
+<p>I am using:</p>
+<ul>
+<li><a href=""http://en.wikipedia.org/wiki/Web_Services_Description_Language"" rel=""noreferrer"">WSDL</a> (<a href=""http://en.wikipedia.org/wiki/SOAP"" rel=""noreferrer"">SOAP</a>)</li>
+<li>Flex 3.5</li>
+<li>ActionScript 3</li>
+<li>ColdFusion 8</li>
+</ul>
+<p>Note that the error <strong>does not</strong> occur when calling the webservice as an object from a ColdFusion page.</p>
+","['apache-flex', 'actionscript', 'soap', 'coldfusion', 'wsdl']",1292460134,4794,955747,9,True
+7244321,How do I update or sync a forked repository on GitHub?,"<p>I forked a project, made changes, and created a pull request which was accepted. New commits were later added to the repository. How do I get those commits into my fork?</p>
+","['git', 'github', 'synchronization', 'repository', 'git-fork']",1314712380,4792,1384627,33,True
+309424,How do I read / convert an InputStream into a String in Java?,"<p>If you have a <code>java.io.InputStream</code> object, how should you process that object and produce a <code>String</code>?</p>
+<hr />
+<p>Suppose I have an <code>InputStream</code> that contains text data, and I want to convert it to a <code>String</code>, so for example I can write that to a log file.</p>
+<p>What is the easiest way to take the <code>InputStream</code> and convert it to a <code>String</code>?</p>
+<pre><code>public String convertStreamToString(InputStream is) {
+// ???
+}
+</code></pre>
+","['java', 'string', 'io', 'stream', 'inputstream']",1227286060,4767,2760376,67,True
+136097,What is the difference between @staticmethod and @classmethod in Python?,"<p>What is the difference between a method <a href=""https://peps.python.org/pep-0318/"" rel=""noreferrer"">decorated</a> with <a href=""http://docs.python.org/library/functions.html#staticmethod"" rel=""noreferrer""><code>@staticmethod</code></a> and one decorated with <a href=""http://docs.python.org/library/functions.html#classmethod"" rel=""noreferrer""><code>@classmethod</code></a>?</p>
+","['python', 'oop', 'static-methods', 'python-decorators', 'class-method']",1222376517,4762,1142167,36,True
+1260748,How do I remove a submodule?,"<p>How do I remove a Git submodule?
+Why can't I do
+<code>git submodule rm module_name</code>?</p>
+","['git', 'git-submodules']",1250001084,4719,1898418,43,True
+509211,How slicing in Python works,"<p>How does Python's <em>slice notation</em> work? That is: when I write code like <code>a[x:y:z]</code>, <code>a[:]</code>, <code>a[::2]</code> etc., how can I understand which elements end up in the slice?</p>
+<hr />
+<p><sub>See <a href=""https://stackoverflow.com/questions/11364533"">Why are slice and range upper-bound exclusive?</a> to learn why <code>xs[0:2] == [xs[0], xs[1]]</code>, <em>not</em> <code>[..., xs[2]]</code>.</sub><br />
+<sub>See <a href=""https://stackoverflow.com/questions/1403674/"">Make a new list containing every Nth item in the original list</a> for <code>xs[::N]</code>.</sub><br />
+<sub>See <a href=""https://stackoverflow.com/questions/10623302"">How does assignment work with list slices?</a> to learn what <code>xs[0:2] = [&quot;a&quot;, &quot;b&quot;]</code> does.</sub></p>
+","['python', 'slice', 'sequence']",1233700262,4682,3216426,38,True
+426258,Setting &quot;checked&quot; for a checkbox with jQuery,"<p>I'd like to do something like this to tick a <code>checkbox</code> using <strong>jQuery</strong>:</p>
+
+<pre><code>$("".myCheckBox"").checked(true);
+</code></pre>
+
+<p>or</p>
+
+<pre><code>$("".myCheckBox"").selected(true);
+</code></pre>
+
+<p>Does such a thing exist?</p>
+","['javascript', 'jquery', 'checkbox', 'selected', 'checked']",1231453224,4604,3892444,44,True
+59838,How do I check if a directory exists or not in a Bash shell script?,"<p>What command checks if a directory exists or not within a Bash shell script?</p>
+","['bash', 'shell', 'unix', 'command', 'posix']",1221249985,4539,3451345,35,True
+2669690,Why does Google prepend while(1); to their JSON responses?,"<p>Why does Google prepend <code>while(1);</code> to their (private) JSON responses?</p>
+
+<p>For example, here's a response while turning a calendar on and off in <a href=""https://calendar.google.com/calendar/about/"" rel=""noreferrer"">Google Calendar</a>:</p>
+
+<pre><code>while (1);
+[
+  ['u', [
+    ['smsSentFlag', 'false'],
+    ['hideInvitations', 'false'],
+    ['remindOnRespondedEventsOnly', 'true'],
+    ['hideInvitations_remindOnRespondedEventsOnly', 'false_true'],
+    ['Calendar ID stripped for privacy', 'false'],
+    ['smsVerifiedFlag', 'true']
+  ]]
+]
+</code></pre>
+
+<p>I would assume this is to prevent people from doing an <code>eval()</code> on it, but all you'd really have to do is replace the <code>while</code> and then you'd be set. I would assume the eval prevention is to make sure people write safe JSON parsing code.</p>
+
+<p>I've seen this used in a couple of other places, too, but a lot more so with Google (Mail, Calendar, Contacts, etc.) Strangely enough, <a href=""https://www.google.com/docs/about/"" rel=""noreferrer"">Google Docs</a> starts with <code>&amp;&amp;&amp;START&amp;&amp;&amp;</code> instead, and Google Contacts seems to start with <code>while(1); &amp;&amp;&amp;START&amp;&amp;&amp;</code>.</p>
+
+<p>What's going on here?</p>
+","['javascript', 'json', 'ajax', 'security']",1271700009,4507,603865,8,True
+14994391,&quot;Thinking in AngularJS&quot; if I have a jQuery background?,"<p>Suppose I'm familiar with developing client-side applications in <a href=""http://jquery.com/"" rel=""noreferrer"">jQuery</a>, but now I'd like to start using <a href=""http://angularjs.org/"" rel=""noreferrer"">AngularJS</a>. Can you describe the paradigm shift that is necessary? Here are a few questions that might help you frame an answer:</p>
+
+<ul>
+<li>How do I architect and design client-side web applications differently? What is the biggest difference?</li>
+<li>What should I stop doing/using; What should I start doing/using instead?</li>
+<li>Are there any server-side considerations/restrictions?</li>
+</ul>
+
+<p>I'm not looking for a detailed comparison between <code>jQuery</code> and <code>AngularJS</code>.</p>
+","['javascript', 'jquery', 'angularjs']",1361419796,4500,856559,15,True
+16047306,How is Docker different from a virtual machine?,"<p>I keep rereading <a href=""https://docs.docker.com/"" rel=""noreferrer"">the Docker documentation</a> to try to understand the difference between Docker and a full VM. How does it manage to provide a full filesystem, isolated networking environment, etc. without being as heavy?</p>
+
+<p>Why is deploying software to a Docker image (if that's the right term) easier than simply deploying to a consistent production environment?</p>
+","['docker', 'virtual-machine']",1366147187,4492,947904,26,True
+1338728,How do I delete a commit from a branch?,"<p>How do I delete a commit from my branch history? Should I use <code>git reset --hard HEAD</code>?</p>
+","['git', 'git-rebase', 'git-reset']",1251344390,4489,5595754,42,True
+176918,How can I find the index for a given item in a list?,"<p>Given a list <code>[&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;]</code> and an item in the list <code>&quot;bar&quot;</code>, how do I get its index <code>1</code>?</p>
+","['python', 'list', 'indexing']",1223343578,4477,6653760,47,True
+134845,"Which &quot;href&quot; value should I use for JavaScript links, &quot;#&quot; or &quot;javascript:void(0)&quot;?","<p>The following are two methods of building a link that has the sole purpose of running JavaScript code. Which is better, in terms of functionality, page load speed, validation purposes, etc.?</p>
+
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""false"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-js lang-js prettyprint-override""><code>function myJsFunc() {
+    alert(""myJsFunc"");
+}</code></pre>
+<pre class=""snippet-code-html lang-html prettyprint-override""><code>&lt;a href=""#"" onclick=""myJsFunc();""&gt;Run JavaScript Code&lt;/a&gt;</code></pre>
+</div>
+</div>
+</p>
+
+<p>or</p>
+
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""false"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-js lang-js prettyprint-override""><code>function myJsFunc() {
+    alert(""myJsFunc"");
+}</code></pre>
+<pre class=""snippet-code-html lang-html prettyprint-override""><code> &lt;a href=""javascript:void(0)"" onclick=""myJsFunc();""&gt;Run JavaScript Code&lt;/a&gt;</code></pre>
+</div>
+</div>
+</p>
+","['javascript', 'html', 'performance', 'optimization', 'href']",1222365267,4456,2519606,56,True
+271526,How do I avoid checking for nulls in Java?,"<p>I use <code>x != null</code> to avoid <a href=""https://docs.oracle.com/javase/9/docs/api/java/lang/NullPointerException.html"" rel=""noreferrer""><code>NullPointerException</code></a>. Is there an alternative?</p>
+<pre class=""lang-java prettyprint-override""><code>if (x != null) {
+    // ...
+}
+</code></pre>
+","['java', 'nullpointerexception', 'null']",1226046700,4436,1452667,73,True
+134882,Undoing a git rebase,"<p>How do I easily undo a git rebase? A lengthy manual method is:</p>
+<ol>
+<li>checkout the commit parent to both of the branches</li>
+<li>create and checkout a temporary branch</li>
+<li>cherry-pick all commits by hand</li>
+<li>reset the faulty rebased branch to point to the temporary branch</li>
+</ol>
+<p>In my current situation, this works because I can easily spot commits from both branches (one was my stuff, the other was my colleague's stuff). However, my approach strikes me as suboptimal and error-prone (let's say I had just rebased with two of my own branches).</p>
+<p>Clarification: I am talking about a rebase during which <em>multiple</em> commits were replayed, not only one.</p>
+","['git', 'rebase', 'git-rebase', 'undo']",1222365562,4432,2300953,21,True
+2610497,Change an HTML input&#39;s placeholder color with CSS,"<p>Chrome v4 supports the <a href=""https://www.w3.org/html/wg/drafts/html/master/single-page.html#the-placeholder-attribute"" rel=""noreferrer"" title=""The placeholder attribute"">placeholder attribute</a> on <code>input[type=text]</code> elements (others probably do too).</p>
+<p>However, the following CSS doesn't do anything to the placeholder's value:</p>
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""true"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-css lang-css prettyprint-override""><code>input[placeholder], [placeholder], *[placeholder] {
+    color: red !important;
+}</code></pre>
+<pre class=""snippet-code-html lang-html prettyprint-override""><code>&lt;input type=""text"" placeholder=""Value""&gt;</code></pre>
+</div>
+</div>
+</p>
+<p><code>Value</code> will still remain <code>grey</code> instead of <code>red</code>.</p>
+<p><strong>Is there a way to change the color of the placeholder text?</strong></p>
+","['css', 'html', 'placeholder', 'html-input']",1270842893,4418,2050529,42,True
+105372,How can I enumerate an enum?,"<p>How can you enumerate an <code>enum</code> in C#?</p>
+<p>E.g., the following code does not compile:</p>
+<pre class=""lang-cs prettyprint-override""><code>public enum Suit
+{
+    Spades,
+    Hearts,
+    Clubs,
+    Diamonds
+}
+
+public void EnumerateAllSuitsDemoMethod()
+{
+    foreach (Suit suit in Suit)
+    {
+        DoSomething(suit);
+    }
+}
+</code></pre>
+<p>And it gives the following compile-time error:</p>
+<blockquote>
+<p>'Suit' is a 'type' but is used like a 'variable'</p>
+</blockquote>
+<p>It fails on the <code>Suit</code> keyword, the second one.</p>
+","['c#', '.net', 'loops', 'enums', 'enumeration']",1221856490,4414,1065616,35,True
+3294889,Iterating over dictionaries using &#39;for&#39; loops,"<pre class=""lang-py prettyprint-override""><code>d = {'x': 1, 'y': 2, 'z': 3}
+
+for key in d:
+    print(key, 'corresponds to', d[key])
+</code></pre>
+<p>How does Python recognize that it needs only to read the <code>key</code> from the dictionary? Is <code>key</code> a special keyword, or is it simply a variable?</p>
+","['python', 'loops', 'dictionary', 'key']",1279664862,4402,6097781,17,True
+1109022,How can I close/hide the Android soft keyboard programmatically?,"<p>I have an <code>EditText</code> and a <code>Button</code> in my layout.</p>
+<p>After writing in the edit field and clicking on the <code>Button</code>, I want to hide the virtual keyboard when touching outside the keyboard. Can someone provide a simple example of how to achieve this?</p>
+","['android', 'android-edittext', 'android-softkeyboard', 'android-input-method', 'soft-keyboard']",1247225237,4374,1873417,132,True
+40471,What are the differences between a HashMap and a Hashtable in Java?,"<p>What are the differences between a <a href=""https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/HashMap.html"" rel=""noreferrer""><code>HashMap</code></a> and a <a href=""https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Hashtable.html"" rel=""noreferrer""><code>Hashtable</code></a> in Java?</p>
+
+<p>Which is more efficient for non-threaded applications?</p>
+","['java', 'collections', 'hashmap', 'hashtable']",1220386320,4345,1777006,35,True
+400212,How do I copy to the clipboard in JavaScript?,"<p>How do I copy text to the clipboard (multi-browser)?</p>
+<p>Related: <em><a href=""https://stackoverflow.com/questions/17527870/how-does-trello-access-the-users-clipboard"">How does Trello access the user&#39;s clipboard?</a></em></p>
+","['javascript', 'clipboard', 'copy-paste']",1230642545,4343,3070449,27,True
+586182,How to insert an item into an array at a specific index?,"<p>I am looking for a JavaScript array insert method, in the style of:</p>
+<pre><code>arr.insert(index, item)
+</code></pre>
+<p>Preferably in jQuery, but any JavaScript implementation will do at this point.</p>
+","['javascript', 'arrays']",1235572170,4336,3648431,34,True
+2334712,How do I UPDATE from a SELECT in SQL Server?,"<p>In <strong>SQL Server</strong>, it is possible to insert rows into a table with an <code>INSERT.. SELECT</code> statement:</p>
+<pre><code>INSERT INTO Table (col1, col2, col3)
+SELECT col1, col2, col3 
+FROM other_table 
+WHERE sql = 'cool'
+</code></pre>
+<p>Is it also possible to <em>update</em> a table with <code>SELECT</code>? I have a temporary table containing the values and would like to update another table using those values. Perhaps something like this:</p>
+<pre><code>UPDATE Table SET col1, col2
+SELECT col1, col2 
+FROM other_table 
+WHERE sql = 'cool'
+WHERE Table.id = other_table.id
+</code></pre>
+","['sql', 'sql-server', 't-sql', 'sql-update', 'dml']",1267108613,4335,5571802,40,True
+11832914,"How to round to at most 2 decimal places, if necessary","<p>I'd like to round at most two decimal places, but <em>only if necessary</em>.</p>
+<p>Input:</p>
+<pre><code>10
+1.7777777
+9.1
+</code></pre>
+<p>Output:</p>
+<pre><code>10
+1.78
+9.1
+</code></pre>
+<p>How can I do this in JavaScript?</p>
+","['javascript', 'rounding', 'decimal-point']",1344273468,4316,4875493,95,True
+1014861,Is there a CSS parent selector?,"<p>How do I select the <code>&lt;li&gt;</code> element that is a direct parent of the anchor element?</p>
+<p>As an example, my CSS would be something like this:</p>
+<pre><code>li &lt; a.active {
+    property: value;
+}
+</code></pre>
+<p>Obviously there are ways of doing this with JavaScript, but I'm hoping that there is some sort of workaround that exists native to CSS Level 2.</p>
+<p>The menu that I am trying to style is being spewed out by a CMS, so I can't move the active element to the <code>&lt;li&gt;</code> element... (unless I theme the menu creation module which I'd rather not do).</p>
+","['css', 'css-selectors']",1245355176,4306,3744766,33,True
+201323,How can I validate an email address using a regular expression?,"<p>Over the years I have slowly developed a <a href=""http://en.wikipedia.org/wiki/Regular_expression"" rel=""noreferrer"">regular expression</a> that validates <em>most</em> email addresses correctly, assuming they don't use an IP address as the server part.</p>
+<p>I use it in several PHP programs, and it works most of the time.  However, from time to time I get contacted by someone that is having trouble with a site that uses it, and I end up having to make some adjustment (most recently I realized that I wasn't allowing four-character <a href=""https://en.wikipedia.org/wiki/Top-level_domain"" rel=""noreferrer"">TLDs</a>).</p>
+<p><em>What is the best regular expression you have or have seen for validating emails?</em></p>
+<p>I've seen several solutions that use functions that use several shorter expressions, but I'd rather have one long complex expression in a simple function instead of several short expression in a more complex function.</p>
+",['regex'],1223993674,4299,2794329,78,True
+4181861,Message &#39;src refspec master does not match any&#39; when pushing commits in Git,"<p>I clone my repository with:</p>
+<pre><code>git clone ssh://xxxxx/xx.git 
+</code></pre>
+<p>But after I change some files and <code>add</code> and <code>commit</code> them, I want to push them to the server:</p>
+<pre class=""lang-bash prettyprint-override""><code>git add xxx.php
+git commit -m &quot;TEST&quot;
+git push origin master
+</code></pre>
+<p>But the error I get back is:</p>
+<pre class=""lang-none prettyprint-override""><code>error: src refspec master does not match any.  
+error: failed to push some refs to 'ssh://xxxxx.com/project.git'
+</code></pre>
+","['git', 'git-commit', 'git-clone', 'git-add', 'git-refspec']",1289801350,4238,5053394,104,True
+6245570,How do I get the current branch name in Git?,"<p>How do I get the name of the current branch in Git?</p>
+","['git', 'branch', 'git-branch']",1307304823,4238,3692631,55,True
+16476924,How can I iterate over rows in a Pandas DataFrame?,"<p>I have a pandas dataframe, <code>df</code>:</p>
+<pre class=""lang-none prettyprint-override""><code>   c1   c2
+0  10  100
+1  11  110
+2  12  120
+</code></pre>
+<p>How do I iterate over the rows of this dataframe? For every row, I want to access its elements (values in cells) by the name of the columns. For example:</p>
+<pre class=""lang-py prettyprint-override""><code>for row in df.rows:
+    print(row['c1'], row['c2'])
+</code></pre>
+<hr />
+<p>I found a <a href=""https://stackoverflow.com/questions/7837722/what-is-the-most-efficient-way-to-loop-through-dataframes-with-pandas"">similar question</a>, which suggests using either of these:</p>
+<ul>
+<li>
+<pre class=""lang-py prettyprint-override""><code>for date, row in df.T.iteritems():
+</code></pre>
+</li>
+<li>
+<pre class=""lang-py prettyprint-override""><code>for row in df.iterrows():
+</code></pre>
+</li>
+</ul>
+<p>But I do not understand what the <code>row</code> object is and how I can work with it.</p>
+","['python', 'pandas', 'dataframe', 'loops']",1368169489,4227,7948505,35,True
+388242,The Definitive C++ Book Guide and List,"<p>This question attempts to collect the few pearls among the dozens of bad C++ books that are published every year.</p>
+<p>Unlike many other programming languages, which are often picked up on the go from tutorials found on the Internet, few are able to quickly pick up C++ without studying a well-written C++ book. It is way too big and complex for doing this. In fact, it is so big and complex, that <em><strong>there are very many very bad C++ books</strong></em> out there. And we are not talking about bad style, but things like sporting <em>glaringly obvious factual errors</em> and <em>promoting abysmally bad programming styles</em>.</p>
+<p>Please edit the accepted answer to provide <strong>quality books</strong> and an approximate skill level — <em>preferably</em> <strong>after</strong> <em>discussing your addition in <a href=""https://chat.stackoverflow.com/rooms/10/loungec"">the C++ chat room</a></em>. (The regulars might mercilessly undo your work if they disagree with a recommendation.) Add a short blurb/description about each book that you have personally read/benefited from. Feel free to debate quality, headings, etc. Books that meet the criteria will be added to the list.  Books that have reviews by the Association of C and C++ Users (ACCU) have links to the review.</p>
+<p><sub>*Note: FAQs and other resources can be found in the <a href=""https://stackoverflow.com/tags/c%2b%2b/info"">C++ tag info</a> and under <a href=""/questions/tagged/c%2b%2b-faq"" class=""post-tag"" title=""show questions tagged &#39;c++-faq&#39;"" rel=""tag"">c++-faq</a>. </sub></p>
+","['c++', 'c++-faq']",1230009836,4226,3321747,1,True
+1129216,Sort array of objects by string property value,"<p>I have an array of JavaScript objects:</p>
+<pre><code>var objs = [ 
+    { first_nom: 'Laszlo', last_nom: 'Jamf'     },
+    { first_nom: 'Pig',    last_nom: 'Bodine'   },
+    { first_nom: 'Pirate', last_nom: 'Prentice' }
+];
+</code></pre>
+<p>How can I sort them by the value of <code>last_nom</code> in JavaScript?</p>
+<p>I know about <code>sort(a,b)</code>, but that only seems to work on strings and numbers. Do I need to add a <code>toString()</code> method to my objects?</p>
+","['javascript', 'arrays', 'sorting', 'comparison', 'array-of-dict']",1247627867,4222,3476262,61,True
+784929,What does the !! (double exclamation mark) operator do in JavaScript?,"<p>I saw this code:</p>
+<pre class=""lang-js prettyprint-override""><code>this.vertical = vertical !== undefined ? !!vertical : this.vertical;
+</code></pre>
+<p>It seems to be using <code>!!</code> as an operator, which I don't recognize. What does it do?</p>
+","['javascript', 'operators']",1240560838,4210,970526,37,True
+14415881,How can I pair socks from a pile efficiently?,"<p>Yesterday I was pairing the socks from the clean laundry and figured out the way I was doing it is not very efficient. I was doing a naive search — picking one sock and &quot;iterating&quot; the pile in order to find its pair. This requires iterating over n/2 * n/4 = n<sup>2</sup>/8 socks on average.</p>
+<p>As a computer scientist I was thinking what I could do? Sorting (according to size/color/...) of course came to mind to achieve an O(NlogN) solution.</p>
+<p>Hashing or other not-in-place solutions are not an option, because I am not able to duplicate my socks (though it could be nice if I could).</p>
+<p><strong>So, the question is basically:</strong></p>
+<p>Given a pile of <code>n</code> pairs of socks, containing <code>2n</code> elements (assume each sock has exactly one matching pair), what is the best way to pair them up efficiently with up to logarithmic extra space? (I believe I can remember that amount of info if needed.)</p>
+<p>I am seeking an answer that addresses the following aspects:</p>
+<ul>
+<li>A general <em>theoretical</em> solution for a huge number of socks.</li>
+<li>The actual number of socks is not that large, I don't believe my spouse and I have more than 30 pairs. (And it is fairly easy to distinguish between my socks and hers; can this be used as well?)</li>
+<li>Is it equivalent to the <a href=""http://en.wikipedia.org/wiki/Element_distinctness_problem"" rel=""nofollow noreferrer"">element distinctness problem</a>?</li>
+</ul>
+","['algorithm', 'sorting', 'language-agnostic', 'matching']",1358609675,4205,443145,39,True
+671118,What exactly is RESTful programming?,"<p>What exactly is RESTful programming?</p>
+
+","['rest', 'http', 'architecture', 'definition']",1237733139,4199,1745559,35,True
+1911109,How do I clone a specific Git branch?,"<p>Git clone will clone remote branch into local.</p>
+<p>Is there any way to clone a specific branch by myself without switching branches on the remote repository?</p>
+","['git', 'branch', 'git-clone']",1260918410,4186,5365491,7,True
+154059,How do I check for an empty/undefined/null string in JavaScript?,"<p>Is there a <code>string.Empty</code> in JavaScript, or is it just a case of checking for <code>&quot;&quot;</code>?</p>
+","['javascript', 'null', 'is-empty']",1222795065,4140,5838851,56,True
+638975,How do I tell if a file does not exist in Bash?,"<p>This checks if a file exists:</p>
+<pre><code>#!/bin/bash
+
+FILE=$1     
+if [ -f $FILE ]; then
+   echo &quot;File $FILE exists.&quot;
+else
+   echo &quot;File $FILE does not exist.&quot;
+fi
+</code></pre>
+<p>How do I only check if the file does <strong>not</strong> exist?</p>
+","['bash', 'file-io', 'scripting']",1236869323,4138,3370258,21,True
+1098040,Checking if a key exists in a JavaScript object?,"<p>How do I check if a particular key exists in a JavaScript object or array?</p>
+
+<p>If a key doesn't exist, and I try to access it, will it return false? Or throw an error?</p>
+","['javascript', 'arrays', 'object']",1247059292,4133,3792874,33,True
+9081,grep: show lines surrounding each match,"<p>How do I <code>grep</code> and show the preceding and following 5 lines surrounding each matched line?</p>
+","['search', 'logging', 'grep', 'command-line-interface']",1218563732,4130,1668783,13,True
+363681,How do I generate random integers within a specific range in Java?,"<p>How do I generate a random <code>int</code> value in a specific range?</p>
+<p>The following methods have bugs related to integer overflow:</p>
+<pre class=""lang-java prettyprint-override""><code>randomNum = minimum + (int)(Math.random() * maximum);
+// Bug: `randomNum` can be bigger than `maximum`.
+</code></pre>
+<pre class=""lang-java prettyprint-override""><code>Random rn = new Random();
+int n = maximum - minimum + 1;
+int i = rn.nextInt() % n;
+randomNum =  minimum + i;
+// Bug: `randomNum` can be smaller than `minimum`.
+</code></pre>
+","['java', 'random', 'integer']",1229106057,4129,5324101,59,True
+157944,Create ArrayList from array,"<pre class=""lang-java prettyprint-override""><code>Element[] array = {new Element(1), new Element(2), new Element(3)};
+</code></pre>
+<p>How do I convert the above variable of type <code>Element[]</code> into a variable of type <a href=""https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/ArrayList.html"" rel=""noreferrer""><code>ArrayList&lt;Element&gt;</code></a>?</p>
+<pre class=""lang-java prettyprint-override""><code>ArrayList&lt;Element&gt; arrayList = ...;
+</code></pre>
+","['java', 'arrays', 'arraylist', 'type-conversion']",1222871912,4127,1887519,42,True
+520650,Make an existing Git branch track a remote branch?,"<p>I know how to make a new branch that tracks remote branches, but <strong>how do I make an existing branch track a remote branch?</strong></p>
+
+<p>I know I can just edit the <code>.git/config</code> file, but it seems there should be an easier way.</p>
+","['git', 'branch', 'git-branch']",1233933244,4109,1918434,23,True
+3010840,Loop through an array in JavaScript,"<p>In Java, you can use a <code>for</code> loop to traverse objects in an array as follows:</p>
+<pre><code>String[] myStringArray = {&quot;Hello&quot;, &quot;World&quot;};
+for (String s : myStringArray) {
+    // Do something
+}
+</code></pre>
+<p>Can I do the same in JavaScript?</p>
+","['javascript', 'arrays', 'loops', 'for-loop']",1276128267,4089,5524639,46,True
+13375357,Proper use cases for Android UserManager.isUserAGoat()?,"<p>I was looking at the new APIs introduced in <a href=""http://en.wikipedia.org/wiki/Android_version_history#Android_4.1.2F4.2_Jelly_Bean"" rel=""noreferrer"">Android 4.2</a>.
+While looking at the <a href=""http://developer.android.com/reference/android/os/UserManager.html"" rel=""noreferrer""><code>UserManager</code></a> class I came across the following method:</p>
+
+<blockquote>
+<pre><code>public boolean isUserAGoat()
+</code></pre>
+  
+  <p>Used to determine whether the user making this call is subject to teleportations.</p>
+  
+  <p>Returns whether the user making this call is a goat.</p>
+</blockquote>
+
+<p>How and when should this be used?</p>
+","['java', 'android', 'usermanager']",1352882041,4051,375740,12,True
+423379,How can I use a global variable in a function?,"<p>How do I create or use a global variable inside a function?</p>
+<p>How do I use a global variable that was defined in one function inside other functions?</p>
+<hr />
+<p><sub>Failing to use the <code>global</code> keyword where appropriate often causes <code>UnboundLocalError</code>. The precise rules for this are explained at <a href=""https://stackoverflow.com/questions/370357"">UnboundLocalError on local variable when reassigned after first use</a>. Generally, please close other questions as a duplicate of <em>that</em> question when an explanation is sought, and <em>this</em> question when someone simply needs to know the <code>global</code> keyword.</sub></p>
+","['python', 'global-variables', 'scope']",1231393502,4039,4227560,27,True
+46898,How do I efficiently iterate over each entry in a Java Map?,"<p>If I have an object implementing the <code>Map</code> interface in Java and I wish to iterate over every pair contained within it,  what is the most efficient way of going through the map?</p>
+
+<p>Will the ordering of elements depend on the specific map implementation that I have for the interface?</p>
+","['java', 'dictionary', 'collections', 'iteration']",1220649168,4030,3544296,46,True
+588004,Is floating-point math broken?,"<p>Consider the following code:</p>
+<pre class=""lang-none prettyprint-override""><code>0.1 + 0.2 == 0.3  -&gt;  false
+</code></pre>
+<pre class=""lang-none prettyprint-override""><code>0.1 + 0.2         -&gt;  0.30000000000000004
+</code></pre>
+<p>Why do these inaccuracies happen?</p>
+","['math', 'floating-point', 'language-agnostic', 'precision', 'floating-accuracy']",1235597942,4022,611187,36,True
+1143796,Remove a file from a Git repository without deleting it from the local filesystem,"<p>I want to remove a file from my repository.</p>
+<pre><code>git rm file_to_remove.txt
+</code></pre>
+<p>will remove the file from the repository, but it will also remove the file from the local file system. How do I remove this file from the repo <strong>without</strong> deleting my local copy of the file?</p>
+","['git', 'repository', 'remote-server', 'delete-file', 'git-rm']",1247842603,4021,1312967,15,True
+1394797,"Move existing, uncommitted work to a new branch in Git","<p>I started some work on a new feature and after coding for a bit, I decided this feature should be on its own branch. </p>
+
+<p>How do I move the existing uncommitted changes to a new branch and reset my current one?</p>
+
+<p>I want to reset my current branch while preserving existing work on the new feature.</p>
+","['git', 'git-branch', 'git-stash', 'git-reset']",1252425425,4010,1154543,14,True
+278192,View the change history of a file using Git versioning,"<p>How do I view the history of an individual file with complete details of what has changed?</p>
+<p><code>git log -- [filename]</code> shows me the commit history of a file, but how do I see the file content that changed?</p>
+","['git', 'git-log']",1226331752,3979,2608912,27,True
+415511,How do I get the current time in Python?,"<p>How do I get the current time in Python?</p>
+","['python', 'datetime', 'time']",1231217663,3973,4706892,54,True
+57483,What are the differences between a pointer variable and a reference variable?,"<p>What is the difference between a pointer variable and a reference variable?</p>
+","['c++', 'pointers', 'reference', 'c++-faq']",1221163437,3947,1278726,44,True
+951021,What is the JavaScript version of sleep()?,"<p>Is there a better way to engineer a <code>sleep</code> in JavaScript than the following <code>pausecomp</code> function (<a href=""http://www.sean.co.uk/a/webdesign/javascriptdelay.shtm"" rel=""noreferrer"">taken from here</a>)?</p>
+
+<pre><code>function pausecomp(millis)
+{
+    var date = new Date();
+    var curDate = null;
+    do { curDate = new Date(); }
+    while(curDate-date &lt; millis);
+}
+</code></pre>
+
+<p>This is not a duplicate of <a href=""https://stackoverflow.com/questions/758688/sleep-in-javascript-delay-between-actions"">Sleep in JavaScript - delay between actions</a>; I want a <em>real sleep</em> in the middle of a function, and not a delay before a piece of code executes.</p>
+","['javascript', 'sleep']",1244126470,3945,5278378,97,True
+29482,How do I cast int to enum in C#?,"<p>How do I cast an <code>int</code> to an <code>enum</code> in C#?</p>
+","['c#', 'enums', 'casting', 'integer']",1219809501,3943,2154795,30,True
+6470428,How can I catch multiple exceptions in one line? (in the &quot;except&quot; block),"<p>I know that I can do:</p>
+<pre><code>try:
+    # do something that may fail
+except:
+    # do this if ANYTHING goes wrong
+</code></pre>
+<p>I can also do this:</p>
+<pre><code>try:
+    # do something that may fail
+except IDontLikeYouException:
+    # say please
+except YouAreTooShortException:
+    # stand on a ladder
+</code></pre>
+<p>But if I want to do the same thing inside two different exceptions, the best I can think of right now is to do this:</p>
+<pre><code>try:
+    # do something that may fail
+except IDontLikeYouException:
+    # say please
+except YouAreBeingMeanException:
+    # say please
+</code></pre>
+<p>Is there a way that I can do something like this (since the action to take in both exceptions is to <code>say please</code>):</p>
+<pre><code>try:
+    # do something that may fail
+except IDontLikeYouException, YouAreBeingMeanException:
+    # say please
+</code></pre>
+<p>Now this really won't work, as it matches the syntax for:</p>
+<pre><code>try:
+    # do something that may fail
+except Exception, e:
+    # say please
+</code></pre>
+<p>So, my effort to catch the two distinct exceptions doesn't exactly come through.</p>
+<p>Is there a way to do this?</p>
+","['python', 'exception']",1308930908,3942,1615616,6,True
+123198,How do I copy a file?,"<p>How do I copy a file in Python?</p>
+","['python', 'file', 'copy', 'filesystems', 'file-copying']",1222197828,3928,4038405,21,True
+7172784,How do I POST JSON data with cURL?,"<p>I use Ubuntu and installed <a href=""https://en.wikipedia.org/wiki/CURL"" rel=""noreferrer"">cURL</a> on it. I want to test my Spring REST application with cURL. I wrote my POST code at the Java side. However, I want to test it with cURL. I am trying to post a JSON data. Example data is like this:</p>
+<pre><code>{&quot;value&quot;:&quot;30&quot;,&quot;type&quot;:&quot;Tip 3&quot;,&quot;targetModule&quot;:&quot;Target 3&quot;,&quot;configurationGroup&quot;:null,&quot;name&quot;:&quot;Configuration Deneme 3&quot;,&quot;description&quot;:null,&quot;identity&quot;:&quot;Configuration Deneme 3&quot;,&quot;version&quot;:0,&quot;systemId&quot;:3,&quot;active&quot;:true}
+</code></pre>
+<p>I use this command:</p>
+<pre class=""lang-none prettyprint-override""><code>curl -i \
+    -H &quot;Accept: application/json&quot; \
+    -H &quot;X-HTTP-Method-Override: PUT&quot; \
+    -X POST -d &quot;value&quot;:&quot;30&quot;,&quot;type&quot;:&quot;Tip 3&quot;,&quot;targetModule&quot;:&quot;Target 3&quot;,&quot;configurationGroup&quot;:null,&quot;name&quot;:&quot;Configuration Deneme 3&quot;,&quot;description&quot;:null,&quot;identity&quot;:&quot;Configuration Deneme 3&quot;,&quot;version&quot;:0,&quot;systemId&quot;:3,&quot;active&quot;:true \
+    http://localhost:8080/xx/xxx/xxxx
+</code></pre>
+<p>It returns this error:</p>
+<pre class=""lang-none prettyprint-override""><code>HTTP/1.1 415 Unsupported Media Type
+Server: Apache-Coyote/1.1
+Content-Type: text/html;charset=utf-8
+Content-Length: 1051
+Date: Wed, 24 Aug 2011 08:50:17 GMT
+</code></pre>
+<p>The error description is this:</p>
+<blockquote>
+<p><em>The server refused this request because the request entity is in a format not supported by the requested resource for the requested method ().</em></p>
+</blockquote>
+<p>Tomcat log:
+&quot;POST /ui/webapp/conf/clear HTTP/1.1&quot; 415 1051</p>
+<p>What is the right format of the cURL command?</p>
+<p>This is my Java side <code>PUT</code> code (I have tested GET and DELETE and they work):</p>
+<pre class=""lang-java prettyprint-override""><code>@RequestMapping(method = RequestMethod.PUT)
+public Configuration updateConfiguration(HttpServletResponse response, @RequestBody Configuration configuration) { //consider @Valid tag
+    configuration.setName(&quot;PUT worked&quot;);
+    //todo If error occurs response.sendError(HttpServletResponse.SC_NOT_FOUND);
+    return configuration;
+}
+</code></pre>
+","['json', 'rest', 'spring-mvc', 'curl', 'http-headers']",1314175871,3918,4688115,31,True
+679915,How do I test for an empty JavaScript object?,"<p>After an AJAX request, sometimes my application may return an empty object, like:</p>
+
+<pre><code>var a = {};
+</code></pre>
+
+<p>How can I check whether that's the case?</p>
+","['javascript', 'javascript-objects']",1237945185,3889,4399727,41,True
+448271,What is __init__.py for?,"<p>What is <a href=""https://docs.python.org/3/tutorial/modules.html#packages"" rel=""noreferrer""><code>__init__.py</code></a> for in a Python source directory?</p>
+","['python', 'module', 'package', 'python-packaging']",1232050149,3887,2704777,14,True
+606191,Convert bytes to a string in Python 3,"<p>I captured the standard output of an external program into a <code>bytes</code> object:</p>
+<pre><code>&gt;&gt;&gt; from subprocess import *
+&gt;&gt;&gt; stdout = Popen(['ls', '-l'], stdout=PIPE).communicate()[0]
+&gt;&gt;&gt; stdout
+b'total 0\n-rw-rw-r-- 1 thomas thomas 0 Mar  3 07:03 file1\n-rw-rw-r-- 1 thomas thomas 0 Mar  3 07:03 file2\n'
+</code></pre>
+<p>I want to convert that to a normal Python string, so that I can print it like this:</p>
+<pre><code>&gt;&gt;&gt; print(stdout)
+-rw-rw-r-- 1 thomas thomas 0 Mar  3 07:03 file1
+-rw-rw-r-- 1 thomas thomas 0 Mar  3 07:03 file2
+</code></pre>
+<p>How do I convert the <code>bytes</code> object to a <code>str</code> with Python 3?</p>
+<hr />
+<p><sub>See <a href=""https://stackoverflow.com/questions/7585435"">Best way to convert string to bytes in Python 3?</a> for the other way around.</sub></p>
+","['python', 'string', 'python-3.x']",1236082981,3870,5316951,23,True
+8881291,Why is char[] preferred over String for passwords?,"<p>In Swing, the password field has a <code>getPassword()</code> (returns <code>char[]</code>) method instead of the usual <code>getText()</code> (returns <code>String</code>) method. Similarly, I have come across a suggestion not to use <code>String</code> to handle passwords.</p>
+
+<p>Why does <code>String</code> pose a threat to security when it comes to passwords?
+It feels inconvenient to use <code>char[]</code>.</p>
+","['java', 'string', 'security', 'passwords', 'char']",1326723642,3868,528108,17,True
+8710619,"Why don&#39;t Java&#39;s +=, -=, *=, /= compound assignment operators require casting?","<p>Until today, I thought that for example:</p>
+
+<pre><code>i += j;
+</code></pre>
+
+<p>Was just a shortcut for:</p>
+
+<pre><code>i = i + j;
+</code></pre>
+
+<p>But if we try this:</p>
+
+<pre><code>int i = 5;
+long j = 8;
+</code></pre>
+
+<p>Then <code>i = i + j;</code> will not compile but <code>i += j;</code> will compile fine.</p>
+
+<p>Does it mean that in fact <code>i += j;</code> is a shortcut for something like this
+<code>i = (type of i) (i + j)</code>?</p>
+","['java', 'casting', 'operators', 'variable-assignment', 'assignment-operator']",1325585432,3859,318974,12,True
+3040833,How do I stash only one file out of multiple files that have changed?,"<p>How do I stash only one of the multiple changed files on my branch?</p>
+","['git', 'git-stash']",1276548753,3853,1346999,33,True
+1034621,Get the current URL with JavaScript?,"<p>All I want is to get the website URL. Not the URL as taken from a link. On the page loading I need to be able to grab the full, current URL of the website and set it as a variable to do with as I please.</p>
+","['javascript', 'url']",1245785205,3833,3938933,26,True
+37937984,Git refusing to merge unrelated histories on rebase,"<p>During <code>git rebase origin/development</code> the following error message is shown from Git:</p>
+
+<pre><code>fatal: refusing to merge unrelated histories
+Error redoing merge 1234deadbeef1234deadbeef
+</code></pre>
+
+<p>My Git version is 2.9.0. It used to work fine in the previous version. </p>
+
+<p>How can I continue this rebase allowing unrelated histories with the forced flag introduced in the new release?</p>
+","['git', 'rebase']",1466493780,3815,3363542,32,True
+728360,How do I correctly clone a JavaScript object?,"<p>I have an object <code>x</code>. I'd like to copy it as object <code>y</code>, such that changes to <code>y</code> do not modify <code>x</code>. I realized that copying objects derived from built-in JavaScript objects will result in extra, unwanted properties. This isn't a problem, since I'm copying one of my own literal-constructed objects.</p>
+
+<p>How do I correctly clone a JavaScript object?</p>
+","['javascript', 'clone', 'javascript-objects']",1239159666,3813,2509806,83,True
+1436703,What is the difference between __str__ and __repr__?,"<p>What is the difference between <a href=""https://docs.python.org/3/reference/datamodel.html#object.__str__"" rel=""noreferrer""><code>__str__</code></a> and <a href=""https://docs.python.org/3/reference/datamodel.html#object.__repr__"" rel=""noreferrer""><code>__repr__</code></a> in Python?</p>
+","['python', 'magic-methods', 'repr']",1253161665,3807,1061086,29,True
+1066589,Iterate through a HashMap,"<p>What's the best way to iterate over the items in a <a href=""https://docs.oracle.com/javase/10/docs/api/java/util/HashMap.html"" rel=""noreferrer""><code>HashMap</code></a>?</p>
+","['java', 'loops', 'hashmap', 'iteration']",1246404254,3783,4540014,7,True
+6470651,How can I create a memory leak in Java?,"<p>I just had an interview where I was asked to create a <em><strong>memory leak</strong></em> with Java.</p>
+<p>Needless to say, I felt pretty dumb, having no idea how to start creating one.</p>
+<p>What would an example be?</p>
+","['java', 'memory', 'memory-leaks']",1308931912,3754,763044,61,True
+121162,What does the explicit keyword mean?,"<p>What does the <code>explicit</code> keyword mean in C++?</p>
+","['c++', 'constructor', 'explicit', 'c++-faq', 'explicit-constructor']",1222178325,3743,1296220,10,True
+1519006,How do I create a remote Git branch?,"<p>I created a local branch. How do I push it to the remote server?</p>
+<p><strong>UPDATE: I have written a <a href=""https://stackoverflow.com/a/27185855/109305"">simpler answer for Git 2.0 here</a>.</strong></p>
+","['git', 'branch', 'git-branch']",1254734464,3738,3063138,26,True
+352098,How can I pretty-print JSON in a shell script?,"<p>Is there a (Unix) shell script to format JSON in human-readable form?</p>
+<p>Basically, I want it to transform the following:</p>
+<pre class=""lang-json prettyprint-override""><code>{ &quot;foo&quot;: &quot;lorem&quot;, &quot;bar&quot;: &quot;ipsum&quot; }
+</code></pre>
+<p>... into something like this:</p>
+<pre class=""lang-json prettyprint-override""><code>{
+    &quot;foo&quot;: &quot;lorem&quot;,
+    &quot;bar&quot;: &quot;ipsum&quot;
+}
+</code></pre>
+","['json', 'unix', 'command-line', 'format', 'pretty-print']",1228810845,3736,1907610,63,True
+215497,"What is the difference between public, protected, package-private and private in Java?","<p>In Java, are there clear rules on when to use each of access modifiers, namely the default (package private), <code>public</code>, <code>protected</code> and <code>private</code>, while making <code>class</code> and <code>interface</code> and dealing with inheritance?</p>
+","['java', 'private', 'public', 'protected', 'access-modifiers']",1224359592,3729,2707694,32,True
+339923,Set cellpadding and cellspacing in CSS?,"<p>In an HTML table, the <code>cellpadding</code> and <code>cellspacing</code> can be set like this:</p>
+
+<pre class=""lang-html prettyprint-override""><code>&lt;table cellspacing=""1"" cellpadding=""1""&gt;
+</code></pre>
+
+<p>How can the same be accomplished using CSS?</p>
+","['html', 'css', 'html-table', 'alignment']",1228380347,3724,2777039,19,True
+1085162,Commit only part of a file&#39;s changes in Git,"<p>When I make changes to a file in Git, how can I commit only some of the changes?</p>
+
+<p>For example, how could I commit only 15 lines out of 30 lines that have been changed in a file?</p>
+","['git', 'git-commit']",1246847102,3684,710771,30,True
+130794,What is dependency injection?,"<p>There have been several questions already posted with specific questions about <a href=""http://en.wikipedia.org/wiki/Dependency_injection"" rel=""noreferrer"">dependency injection</a>, such as when to use it and what frameworks are there for it. However,</p>
+
+<p><strong>What is dependency injection and when/why should or shouldn't it be used?</strong></p>
+","['design-patterns', 'language-agnostic', 'dependency-injection', 'terminology']",1222302520,3683,1271925,40,True
+424071,How do I list all the files in a commit?,"<p>How can I print a plain list of all files that were part of a given commit?</p>
+<p>Although the following lists the files, it also includes unwanted diff information for each:</p>
+<pre><code>git show a303aa90779efdd2f6b9d90693e2cbbbe4613c1d
+</code></pre>
+","['git', 'git-show']",1231417592,3671,2390430,30,True
+3297048,403 Forbidden vs 401 Unauthorized HTTP responses,"<p>For a web page that exists, but for which a user does not have sufficient privileges (they are not logged in or do not belong to the proper user group), what is the proper HTTP response to serve?</p>
+
+<p><code>401 Unauthorized</code>?<br>
+<code>403 Forbidden</code>?<br>
+Something else?</p>
+
+<p>What I've read on each so far isn't very clear on the difference between the two. What use cases are appropriate for each response?</p>
+","['http-headers', 'http-status-code-403', 'http-status-codes', 'http-status-code-401', 'http-response-codes']",1279696918,3663,1625065,22,True
+8467424,Echo newline in Bash prints literal \n,"<p>How do I print a newline? This merely prints <code>\n</code>:</p>
+<pre><code>echo -e &quot;Hello,\nWorld!&quot;
+</code></pre>
+<p>Output:</p>
+<pre class=""lang-none prettyprint-override""><code>Hello,\nWorld!
+</code></pre>
+","['bash', 'echo', 'newline']",1323637314,3648,3637413,24,True
+322715,When to use LinkedList over ArrayList in Java?,"<p>I've always been one to simply use:</p>
+<pre><code>List&lt;String&gt; names = new ArrayList&lt;&gt;();
+</code></pre>
+<p>I use the interface as the type name for <em>portability</em>, so that when I ask questions such as this, I can rework my code.</p>
+<p>When should <a href=""https://docs.oracle.com/javase/9/docs/api/java/util/LinkedList.html"" rel=""noreferrer""><code>LinkedList</code></a> be used over <a href=""https://docs.oracle.com/javase/9/docs/api/java/util/ArrayList.html"" rel=""noreferrer""><code>ArrayList</code></a> and vice-versa?</p>
+","['java', 'arraylist', 'collections', 'linked-list']",1227749795,3641,1412626,35,True
+5195859,How do you push a tag to a remote repository using Git?,"<p>I added a tag to the master branch on my machine:</p>
+<pre><code>git tag mytag master
+</code></pre>
+<p>How do I push this to the remote repository? Running <code>git push</code> gives the message:</p>
+<blockquote>
+<p>Everything up-to-date</p>
+</blockquote>
+<p>However, the remote repository does not contain my tag.</p>
+","['git', 'git-push', 'git-tag']",1299253044,3640,2508376,14,True
+229551,How to check if a string contains a substring in Bash,"<p>I have a string in Bash:</p>
+<pre class=""lang-sh prettyprint-override""><code>string=&quot;My string&quot;
+</code></pre>
+<p>How can I test if it contains another string?</p>
+<pre class=""lang-sh prettyprint-override""><code>if [ $string ?? 'foo' ]; then
+  echo &quot;It's there!&quot;
+fi
+</code></pre>
+<p>Where <code>??</code> is my unknown operator. Do I use <code>echo</code> and <code>grep</code>?</p>
+<pre class=""lang-sh prettyprint-override""><code>if echo &quot;$string&quot; | grep 'foo'; then
+  echo &quot;It's there!&quot;
+fi
+</code></pre>
+<p>That looks a bit clumsy.</p>
+","['string', 'bash', 'shell', 'substring', 'sh']",1224765451,3637,3346172,30,True
+684672,How do I loop through or enumerate a JavaScript object?,"<p>I have a JavaScript object like the following:</p>
+<pre><code>var p = {
+    &quot;p1&quot;: &quot;value1&quot;,
+    &quot;p2&quot;: &quot;value2&quot;,
+    &quot;p3&quot;: &quot;value3&quot;
+};
+</code></pre>
+<p>How do I loop through all of <code>p</code>'s elements (<code>p1</code>, <code>p2</code>, <code>p3</code>...) and get their keys and values?</p>
+","['javascript', 'loops', 'for-loop', 'each']",1238047307,3621,2860076,48,True
+17071871,How do I select rows from a DataFrame based on column values?,"<p>How can I select rows from a DataFrame based on values in some column in Pandas?</p>
+<p>In SQL, I would use:</p>
+<pre class=""lang-sql prettyprint-override""><code>SELECT *
+FROM table
+WHERE column_name = some_value
+</code></pre>
+","['python', 'pandas', 'dataframe', 'indexing', 'filter']",1371058925,3614,6813718,20,True
+263965,How can I convert a string to boolean in JavaScript?,"<p>Can I convert a string representing a boolean value (e.g., 'true', 'false') into an intrinsic type in JavaScript?</p>
+<p>I have a hidden form in HTML that is updated based on a user's selection within a list. This form contains some fields which represent boolean values and are dynamically populated with an intrinsic boolean value. However, once this value is placed into the hidden input field it becomes a string.</p>
+<p>The only way I could find to determine the field's boolean value, once it was converted into a string, was to depend upon the literal value of its string representation.</p>
+<pre><code>var myValue = document.myForm.IS_TRUE.value;
+var isTrueSet = myValue == 'true';
+</code></pre>
+<p>Is there a better way to accomplish this?</p>
+","['javascript', 'boolean-expression', 'boolean-operations', 'string-conversion']",1225843988,3605,3596148,111,True
+4181703,How to concatenate string variables in Bash,"<p>In PHP, strings are concatenated together as follows:</p>
+<pre><code>$foo = &quot;Hello&quot;;
+$foo .= &quot; World&quot;;
+</code></pre>
+<p>Here, <code>$foo</code> becomes <code>&quot;Hello World&quot;</code>.</p>
+<p>How is this accomplished in Bash?</p>
+","['bash', 'shell', 'syntax', 'concatenation', 'string-concatenation']",1289799515,3604,5297917,31,True
+3552461,How do I format a date in JavaScript?,"<p>How do I format a Javascript <code>Date</code> object as a string? (Preferable format: <code>10-Aug-2010</code>)</p>
+","['javascript', 'date', 'date-formatting']",1282606106,3597,6976674,71,True
+1024847,How can I add new keys to a dictionary?,"<p>How do I add a new key to an existing dictionary? It doesn't have an <code>.add()</code> method.</p>
+","['python', 'dictionary', 'key', 'lookup']",1245622059,3591,5570124,20,True
+3437059,Does Python have a string &#39;contains&#39; substring method?,"<p>I'm looking for a <code>string.contains</code> or <code>string.indexof</code> method in Python.</p>
+
+<p>I want to do:</p>
+
+<pre><code>if not somestring.contains(""blah""):
+   continue
+</code></pre>
+","['python', 'string', 'substring', 'contains']",1281322370,3586,7350966,10,True
+11304895,How do I copy a folder from remote to local using scp?,"<p>How do I copy a folder from remote to local host using <code>scp</code>?</p>
+<p>I use <code>ssh</code> to log in to my server.<br />
+Then, I would like to copy the remote folder <code>foo</code> to local <code>/home/user/Desktop</code>.</p>
+<p>How do I achieve this?</p>
+","['shell', 'ssh', 'command-line', 'copy', 'scp']",1341292678,3576,3791364,17,True
+1554099,Why is the Android emulator so slow? How can we speed up the Android emulator?,"<p>I have got a <strong>2.67</strong>  GHz Celeron processor, and <strong>1.21</strong>  GB of RAM on a <strong>x86</strong> Windows <strong>XP</strong> Professional machine.</p>
+<p>My understanding is that the <strong>Android Emulator</strong> should start fairly quickly on such a machine, but for me, it doesn't. I have followed all the instructions in setting up the IDE, SDKs, JDKs and such and have had some success in starting the emulator quickly, but that is very rare. How can I, if possible, fix this problem?</p>
+<p>Even if it starts and loads the home screen, it is very sluggish. I have tried the <a href=""https://en.wikipedia.org/wiki/Eclipse_%28software%29"" rel=""noreferrer"">Eclipse IDE</a> in <a href=""https://en.wikipedia.org/wiki/Eclipse_%28software%29#Releases"" rel=""noreferrer"">version 3.5</a> (Galileo) and <a href=""https://en.wikipedia.org/wiki/Eclipse_%28software%29#Releases"" rel=""noreferrer"">3.4</a> (Ganymede).</p>
+","['android', 'performance', 'android-emulator', 'genymotion', 'qemu']",1255347953,3566,1151734,78,True
+4810841,pretty-print JSON using JavaScript,"<p>How can I display JSON in an easy-to-read (for human readers) format? I'm looking primarily for indentation and whitespace, with perhaps even colors / font-styles / etc.</p>
+","['javascript', 'json', 'pretty-print']",1296081233,3544,1969081,32,True
+24319662,"From inside of a Docker container, how do I connect to the localhost of the machine?","<p>I have an Nginx instance running inside a Docker container. I have a MySQL running on the host system. I want to connect to the MySQL from within my container. MySQL is only binding to the <a href=""https://en.wikipedia.org/wiki/Localhost"" rel=""noreferrer"">localhost</a> device.</p>
+<p>Is there a way to connect to this MySQL or any other program on localhost from within this docker container?</p>
+<p>This question is different from &quot;How to get the IP address of the Docker host from inside a Docker container&quot; due to the fact that the IP address of the Docker host could be the public IP address or the private IP address in the network which may or may not be reachable from within the Docker container (I mean public IP address if hosted at <a href=""https://en.wikipedia.org/wiki/Amazon_Web_Services"" rel=""noreferrer"">AWS</a> or something).</p>
+<p>Even if you have the IP address of the Docker host, it does not mean you can connect to the Docker host from within the container, given that IP address as your Docker network may be overlay, host, bridge, macvlan, none. etc., which restricts the reachability of that IP address.</p>
+","['docker', 'nginx', 'docker-container', 'docker-network']",1403236456,3542,2831881,45,True
+5585779,How do I convert a String to an int in Java?,"<p>How can I convert a <code>String</code> value to an <code>int</code> type?</p>
+<pre class=""lang-java prettyprint-override""><code>&quot;1234&quot;  →  1234
+</code></pre>
+","['java', 'string', 'type-conversion', 'integer']",1302200874,3537,6980983,31,True
+14494747,How to add images to README.md on GitHub?,"<p>Recently I joined <strong>GitHub</strong>. I hosted some projects there.</p>
+<p>I need to include some images in my README File. I don't know how to do that.</p>
+<p>I searched about this, but all I got was some links which tell me to &quot;host images on web and specify the image path in README.md file&quot;.</p>
+<p>Is there any way to do this without hosting the images on any third-party web hosting services?</p>
+","['github', 'markdown', 'github-flavored-markdown']",1359006246,3530,2789821,48,True
+6996603,How can I delete a file or folder in Python?,"<p>How can I delete a file or folder in Python?</p>
+","['python', 'file-io', 'directory', 'delete-file']",1312895142,3515,3965611,18,True
+805107,How can I assign a multiline string literal to a variable?,"<p>How do I convert this Ruby code with a multiline string into JavaScript?</p>
+<pre class=""lang-none prettyprint-override""><code>text = &lt;&lt;&quot;HERE&quot;
+This
+Is
+A
+Multiline
+String
+HERE
+</code></pre>
+","['javascript', 'string', 'multiline', 'heredoc']",1241057515,3511,2426217,41,True
+52522565,Git is not working after macOS update (&quot;xcrun: error: invalid active developer path (/Library/Developer/CommandLineTools&quot;),"<p>I updated to the latest OS, and/or restarted my computer (this happens on every major update, but this time all I did was restart my computer on 2022-09-13).</p>
+<p>This morning I navigated to my work's codebase in the command line on my <a href=""https://en.wikipedia.org/wiki/MacBook_Pro"" rel=""noreferrer"">MacBook Pro</a>, typed in &quot;git status&quot; in the repository and received an error:</p>
+<p>(In 9/2022, this error was much different, but I didn't capture it)</p>
+<blockquote>
+<p>xcrun: error: invalid active developer path (/Library/Developer/CommandLineTools), missing xcrun at: /Library/Developer/CommandLineTools/usr/bin/xcrun</p>
+</blockquote>
+<p>Git will not work!</p>
+<p>How do I fix Git, and the command-line tools?</p>
+","['xcode', 'git', 'macos', 'command-line', 'terminal']",1537980198,3509,1501422,41,True
+1986896,What is the difference between call and apply?,"<p>What is the difference between using <code>Function.prototype.apply()</code> and <code>Function.prototype.call()</code> to invoke a function?</p>
+<pre class=""lang-js prettyprint-override""><code>const func = function() {
+    alert(&quot;Hello world!&quot;);
+};
+</code></pre>
+<p><code>func.apply()</code> vs. <code>func.call()</code></p>
+<p>Are there performance differences between the two aforementioned methods? When is it best to use <code>call</code> over <code>apply</code> and vice versa?</p>
+","['javascript', 'function', 'performance']",1262289385,3505,834235,25,True
+1132941,&quot;Least Astonishment&quot; and the Mutable Default Argument,"<p>Anyone tinkering with Python long enough has been bitten (or torn to pieces) by the following issue:</p>
+<pre><code>def foo(a=[]):
+    a.append(5)
+    return a
+</code></pre>
+<p>Python novices would expect this function called with no parameter to always return a list with only one element: <code>[5]</code>. The result is instead very different, and very astonishing (for a novice):</p>
+<pre><code>&gt;&gt;&gt; foo()
+[5]
+&gt;&gt;&gt; foo()
+[5, 5]
+&gt;&gt;&gt; foo()
+[5, 5, 5]
+&gt;&gt;&gt; foo()
+[5, 5, 5, 5]
+&gt;&gt;&gt; foo()
+</code></pre>
+<p>A manager of mine once had his first encounter with this feature, and called it &quot;a dramatic design flaw&quot; of the language. I replied that the behavior had an underlying explanation, and it is indeed very puzzling and unexpected if you don't understand the internals. However, I was not able to answer (to myself) the following question: what is the reason for binding the default argument at function definition, and not at function execution? I doubt the experienced behavior has a practical use (who really used static variables in C, without breeding bugs?)</p>
+<p><strong>Edit</strong>:</p>
+<p><a href=""https://stackoverflow.com/a/1137164/7487335"">Baczek made an interesting example</a>. Together with most of your comments and <a href=""https://stackoverflow.com/a/1134623/7487335"">Utaal's in particular</a>, I elaborated further:</p>
+<pre><code>def a():
+    print(&quot;a executed&quot;)
+    return []
+
+           
+def b(x=a()):
+    x.append(5)
+    print(x)
+
+a executed
+&gt;&gt;&gt; b()
+[5]
+&gt;&gt;&gt; b()
+[5, 5]
+</code></pre>
+<p>To me, it seems that the design decision was relative to where to put the scope of parameters: inside the function, or &quot;together&quot; with it?</p>
+<p>Doing the binding inside the function would mean that <code>x</code> is effectively bound to the specified default when the function is called, not defined, something that would present a deep flaw: the <code>def</code> line would be &quot;hybrid&quot; in the sense that part of the binding (of the function object) would happen at definition, and part (assignment of default parameters) at function invocation time.</p>
+<p>The actual behavior is more consistent: everything of that line gets evaluated when that line is executed, meaning at function definition.</p>
+","['python', 'language-design', 'default-parameters', 'least-astonishment']",1247680837,3494,285928,34,True
+572549,Difference between &quot;git add -A&quot; and &quot;git add .&quot;,"<p>What is the difference between <a href=""https://git-scm.com/docs/git-add#Documentation/git-add.txt--A"" rel=""noreferrer""><code>git add [--all | -A]</code></a> and <a href=""https://git-scm.com/docs/git-add"" rel=""noreferrer""><code>git add .</code></a>?</p>
+","['git', 'git-add']",1235199066,3491,2200177,13,True
+444798,Case insensitive &#39;Contains(string)&#39;,"<p>Is there a way to make the following return true?</p>
+<pre><code>string title = &quot;ASTRINGTOTEST&quot;;
+title.Contains(&quot;string&quot;);
+</code></pre>
+<p>There doesn't seem to be an overload that allows me to set the case sensitivity. Currently I UPPERCASE them both, but that's just silly (by which I am referring to the <a href=""http://en.wikipedia.org/wiki/Internationalization_and_localization"" rel=""noreferrer"">i18n</a> issues that come with up- and down casing).</p>
+<p><strong>UPDATE</strong></p>
+<p>This question is ancient and since then I have realized I asked for a simple answer for a really vast and difficult topic if you care to investigate it fully.</p>
+<p>For most cases, in mono-lingual, English code bases <a href=""https://stackoverflow.com/a/444818/11333"">this</a> answer will suffice. I'm suspecting because most people coming here fall in this category this is the most popular answer.</p>
+<p><a href=""https://stackoverflow.com/a/15464440/11333"">This</a> answer however brings up the inherent problem that we can't compare text case insensitive until we know both texts are the same culture and we know  what that culture is. This is maybe a less popular answer, but I think it is more correct and that's why I marked it as such.</p>
+","['c#', 'string', 'contains', 'case-insensitive']",1231969186,3489,1304113,27,True
+36901,What does ** (double star/asterisk) and * (star/asterisk) do for parameters?,"<p>What do <code>*args</code> and <code>**kwargs</code> mean in these function definitions?</p>
+<pre><code>def foo(x, y, *args):
+    pass
+
+def bar(x, y, **kwargs):
+    pass
+</code></pre>
+<hr />
+<p><sub>See <a href=""https://stackoverflow.com/questions/2921847"">What do ** (double star/asterisk) and * (star/asterisk) mean in a function call?</a> for the complementary question about arguments.</sub></p>
+","['python', 'syntax', 'parameter-passing', 'variadic-functions', 'argument-unpacking']",1220195075,3480,1509874,28,True
+2596805,How do I make git use the editor of my choice for editing commit messages?,"<p>How do I globally configure git to use a particular editor (e.g. <code>vim</code>) for commit messages?</p>
+","['git', 'vim', 'emacs', 'editor', 'commit-message']",1270686526,3479,1587383,35,True
+285793,What is a serialVersionUID and why should I use it?,"<p>Eclipse issues warnings when a <code>serialVersionUID</code> is missing.  </p>
+
+<blockquote>
+  <p>The serializable class Foo does not declare a static final
+  serialVersionUID field of type long</p>
+</blockquote>
+
+<p>What is <code>serialVersionUID</code> and why is it important?  Please show an example where missing <code>serialVersionUID</code> will cause a problem.</p>
+","['java', 'serialization', 'serialversionuid']",1226532296,3477,1206333,25,True
+9339429,What does cherry-picking a commit with Git mean?,"<p>What does <a href=""https://git-scm.com/docs/git-cherry-pick"" rel=""noreferrer""><code>git cherry-pick &lt;commit&gt;</code></a> do?</p>
+","['git', 'cherry-pick', 'git-cherry-pick']",1329549647,3465,2657730,16,True
+3207219,How do I list all files of a directory?,"<p>How can I list all files of a directory in Python and add them to a <code>list</code>?</p>
+","['python', 'directory']",1278617482,3464,8824794,21,True
+48198,How do I find out which process is listening on a TCP or UDP port on Windows?,"<p>How do I find out which process is listening on a TCP or UDP port on Windows?</p>
+","['windows', 'network-programming', 'port']",1220768772,3454,6047739,34,True
+195951,How can I change an element&#39;s class with JavaScript?,"<p>How can I change the class of an HTML element in response to an <code>onclick</code> or any other events using JavaScript?</p>
+","['javascript', 'html', 'dom']",1223842003,3451,3601504,34,True
+1452721,What&#39;s the problem with &quot;using namespace std;&quot;?,"<p>I have heard <code>using namespace std;</code> is wrong, and that I should use <code>std::cout</code> and <code>std::cin</code> directly instead.</p>
+<p>Why is this? Does it risk declaring variables that share the same name as something in the <code>std</code> namespace? Are there performance implications?</p>
+","['c++', 'namespaces', 'std', 'using-directives', 'c++-faq']",1253502503,3450,1298700,40,True
+4906977,How can I access environment variables in Python?,"<p>How can I get the value of an environment variable in Python?</p>
+","['python', 'environment-variables']",1296911015,3435,3406594,17,True
+15666048,AngularJS: Service vs provider vs factory,"<p>What are the differences between a <code>Service</code>, <code>Provider</code> and <code>Factory</code> in AngularJS?</p>
+","['angularjs', 'dependency-injection', 'angularjs-service', 'angularjs-factory', 'angularjs-provider']",1364407186,3426,786058,30,True
+613183,How do I sort a dictionary by value?,"<p>I have a dictionary of values read from two fields in a database: a string field and a numeric field. The string field is unique, so that is the key of the dictionary.</p>
+
+<p>I can sort on the keys, but how can I sort based on the values?</p>
+
+<p>Note: I have read Stack Overflow question here <em><a href=""https://stackoverflow.com/questions/72899"">How do I sort a list of dictionaries by a value of the dictionary?</a></em> and probably could change my code to have a list of dictionaries, but since I do not really need a list of dictionaries I wanted to know if there is a simpler solution to sort either in ascending or descending order.</p>
+","['python', 'sorting', 'dictionary']",1236214145,3413,5724416,34,True
+1005073,Initialization of an ArrayList in one line,"<p>I wanted to create a list of options for testing purposes. At first, I did this:</p>
+
+<pre><code>ArrayList&lt;String&gt; places = new ArrayList&lt;String&gt;();
+places.add(""Buenos Aires"");
+places.add(""Córdoba"");
+places.add(""La Plata"");
+</code></pre>
+
+<p>Then, I refactored the code as follows:</p>
+
+<pre><code>ArrayList&lt;String&gt; places = new ArrayList&lt;String&gt;(
+    Arrays.asList(""Buenos Aires"", ""Córdoba"", ""La Plata""));
+</code></pre>
+
+<p>Is there a better way to do this?</p>
+","['java', 'collections', 'arraylist', 'initialization']",1245211820,3409,4016065,36,True
+1711631,Improve INSERT-per-second performance of SQLite,"<p>Optimizing SQLite is tricky. Bulk-insert performance of a C application can vary from 85 inserts per second to over 96,000 inserts per second!</p>
+<p><strong>Background:</strong> We are using SQLite as part of a desktop application. We have large amounts of configuration data stored in XML files that are parsed and loaded into an SQLite database for further processing when the application is initialized. SQLite is ideal for this situation because it's fast, it requires no specialized configuration, and the database is stored on disk as a single file.</p>
+<p><strong>Rationale:</strong> <em>Initially I was disappointed with the performance I was seeing.</em> It turns-out that the performance of SQLite can vary significantly (both for bulk-inserts and selects) depending on how the database is configured and how you're using the API. It was not a trivial matter to figure out what all of the options and techniques were, so I thought it prudent to create this community wiki entry to share the results with Stack Overflow readers in order to save others the trouble of the same investigations.</p>
+<p><strong>The Experiment:</strong> Rather than simply talking about performance tips in the general sense (i.e. <em>&quot;Use a transaction!&quot;</em>), I thought it best to write some C code and <em>actually measure</em> the impact of various options. We're going to start with some simple data:</p>
+<ul>
+<li>A 28 MB TAB-delimited text file (approximately 865,000 records) of the <a href=""https://open.toronto.ca/dataset/ttc-routes-and-schedules/"" rel=""noreferrer"">complete transit schedule for the city of Toronto</a></li>
+<li>My test machine is a 3.60 GHz P4 running Windows XP.</li>
+<li>The code is compiled with <a href=""http://en.wikipedia.org/wiki/Visual_C%2B%2B#32-bit_versions"" rel=""noreferrer"">Visual C++</a> 2005 as &quot;Release&quot; with &quot;Full Optimization&quot; (/Ox) and Favor Fast Code (/Ot).</li>
+<li>I'm using the SQLite &quot;Amalgamation&quot;, compiled directly into my test application. The SQLite version I happen to have is a bit older (3.6.7), but I suspect these results will be comparable to the latest release (please leave a comment if you think otherwise).</li>
+</ul>
+<p><em>Let's write some code!</em></p>
+<p><strong>The Code:</strong> A simple C program that reads the text file line-by-line, splits the string into values and then inserts the data into an SQLite database. In this &quot;baseline&quot; version of the code, the database is created, but we won't actually insert data:</p>
+<pre><code>/*************************************************************
+    Baseline code to experiment with SQLite performance.
+
+    Input data is a 28 MB TAB-delimited text file of the
+    complete Toronto Transit System schedule/route info
+    from http://www.toronto.ca/open/datasets/ttc-routes/
+
+**************************************************************/
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;time.h&gt;
+#include &lt;string.h&gt;
+#include &quot;sqlite3.h&quot;
+
+#define INPUTDATA &quot;C:\\TTC_schedule_scheduleitem_10-27-2009.txt&quot;
+#define DATABASE &quot;c:\\TTC_schedule_scheduleitem_10-27-2009.sqlite&quot;
+#define TABLE &quot;CREATE TABLE IF NOT EXISTS TTC (id INTEGER PRIMARY KEY, Route_ID TEXT, Branch_Code TEXT, Version INTEGER, Stop INTEGER, Vehicle_Index INTEGER, Day Integer, Time TEXT)&quot;
+#define BUFFER_SIZE 256
+
+int main(int argc, char **argv) {
+
+    sqlite3 * db;
+    sqlite3_stmt * stmt;
+    char * sErrMsg = 0;
+    char * tail = 0;
+    int nRetCode;
+    int n = 0;
+
+    clock_t cStartClock;
+
+    FILE * pFile;
+    char sInputBuf [BUFFER_SIZE] = &quot;\0&quot;;
+
+    char * sRT = 0;  /* Route */
+    char * sBR = 0;  /* Branch */
+    char * sVR = 0;  /* Version */
+    char * sST = 0;  /* Stop Number */
+    char * sVI = 0;  /* Vehicle */
+    char * sDT = 0;  /* Date */
+    char * sTM = 0;  /* Time */
+
+    char sSQL [BUFFER_SIZE] = &quot;\0&quot;;
+
+    /*********************************************/
+    /* Open the Database and create the Schema */
+    sqlite3_open(DATABASE, &amp;db);
+    sqlite3_exec(db, TABLE, NULL, NULL, &amp;sErrMsg);
+
+    /*********************************************/
+    /* Open input file and import into Database*/
+    cStartClock = clock();
+
+    pFile = fopen (INPUTDATA,&quot;r&quot;);
+    while (!feof(pFile)) {
+
+        fgets (sInputBuf, BUFFER_SIZE, pFile);
+
+        sRT = strtok (sInputBuf, &quot;\t&quot;);     /* Get Route */
+        sBR = strtok (NULL, &quot;\t&quot;);            /* Get Branch */
+        sVR = strtok (NULL, &quot;\t&quot;);            /* Get Version */
+        sST = strtok (NULL, &quot;\t&quot;);            /* Get Stop Number */
+        sVI = strtok (NULL, &quot;\t&quot;);            /* Get Vehicle */
+        sDT = strtok (NULL, &quot;\t&quot;);            /* Get Date */
+        sTM = strtok (NULL, &quot;\t&quot;);            /* Get Time */
+
+        /* ACTUAL INSERT WILL GO HERE */
+
+        n++;
+    }
+    fclose (pFile);
+
+    printf(&quot;Imported %d records in %4.2f seconds\n&quot;, n, (clock() - cStartClock) / (double)CLOCKS_PER_SEC);
+
+    sqlite3_close(db);
+    return 0;
+}
+</code></pre>
+<hr />
+<h2>The &quot;Control&quot;</h2>
+<p>Running the code as-is doesn't actually perform any database operations, but it will give us an idea of how fast the raw C file I/O and string processing operations are.</p>
+<blockquote>
+<p>Imported 864913 records in 0.94
+seconds</p>
+</blockquote>
+<p>Great! We can do 920,000 inserts per second, provided we don't actually do any inserts :-)</p>
+<hr />
+<h2>The &quot;Worst-Case-Scenario&quot;</h2>
+<p>We're going to generate the SQL string using the values read from the file and invoke that SQL operation using sqlite3_exec:</p>
+<pre><code>sprintf(sSQL, &quot;INSERT INTO TTC VALUES (NULL, '%s', '%s', '%s', '%s', '%s', '%s', '%s')&quot;, sRT, sBR, sVR, sST, sVI, sDT, sTM);
+sqlite3_exec(db, sSQL, NULL, NULL, &amp;sErrMsg);
+</code></pre>
+<p>This is going to be slow because the SQL will be compiled into VDBE code for every insert and every insert will happen in its own transaction. <em>How slow?</em></p>
+<blockquote>
+<p>Imported 864913 records in 9933.61
+seconds</p>
+</blockquote>
+<p>Yikes! 2 hours and 45 minutes! That's only <strong>85 inserts per second.</strong></p>
+<h2>Using a Transaction</h2>
+<p>By default, SQLite will evaluate every INSERT / UPDATE statement within a unique transaction. If performing a large number of inserts, it's advisable to wrap your operation in a transaction:</p>
+<pre><code>sqlite3_exec(db, &quot;BEGIN TRANSACTION&quot;, NULL, NULL, &amp;sErrMsg);
+
+pFile = fopen (INPUTDATA,&quot;r&quot;);
+while (!feof(pFile)) {
+
+    ...
+
+}
+fclose (pFile);
+
+sqlite3_exec(db, &quot;END TRANSACTION&quot;, NULL, NULL, &amp;sErrMsg);
+</code></pre>
+<blockquote>
+<p>Imported 864913 records in 38.03
+seconds</p>
+</blockquote>
+<p>That's better. Simply wrapping all of our inserts in a single transaction improved our performance to <strong>23,000 inserts per second.</strong></p>
+<h2>Using a Prepared Statement</h2>
+<p>Using a transaction was a huge improvement, but recompiling the SQL statement for every insert doesn't make sense if we using the same SQL over-and-over. Let's use <code>sqlite3_prepare_v2</code> to compile our SQL statement once and then bind our parameters to that statement using <code>sqlite3_bind_text</code>:</p>
+<pre><code>/* Open input file and import into the database */
+cStartClock = clock();
+
+sprintf(sSQL, &quot;INSERT INTO TTC VALUES (NULL, @RT, @BR, @VR, @ST, @VI, @DT, @TM)&quot;);
+sqlite3_prepare_v2(db,  sSQL, BUFFER_SIZE, &amp;stmt, &amp;tail);
+
+sqlite3_exec(db, &quot;BEGIN TRANSACTION&quot;, NULL, NULL, &amp;sErrMsg);
+
+pFile = fopen (INPUTDATA,&quot;r&quot;);
+while (!feof(pFile)) {
+
+    fgets (sInputBuf, BUFFER_SIZE, pFile);
+
+    sRT = strtok (sInputBuf, &quot;\t&quot;);   /* Get Route */
+    sBR = strtok (NULL, &quot;\t&quot;);        /* Get Branch */
+    sVR = strtok (NULL, &quot;\t&quot;);        /* Get Version */
+    sST = strtok (NULL, &quot;\t&quot;);        /* Get Stop Number */
+    sVI = strtok (NULL, &quot;\t&quot;);        /* Get Vehicle */
+    sDT = strtok (NULL, &quot;\t&quot;);        /* Get Date */
+    sTM = strtok (NULL, &quot;\t&quot;);        /* Get Time */
+
+    sqlite3_bind_text(stmt, 1, sRT, -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 2, sBR, -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 3, sVR, -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 4, sST, -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 5, sVI, -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 6, sDT, -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 7, sTM, -1, SQLITE_TRANSIENT);
+
+    sqlite3_step(stmt);
+
+    sqlite3_clear_bindings(stmt);
+    sqlite3_reset(stmt);
+
+    n++;
+}
+fclose (pFile);
+
+sqlite3_exec(db, &quot;END TRANSACTION&quot;, NULL, NULL, &amp;sErrMsg);
+
+printf(&quot;Imported %d records in %4.2f seconds\n&quot;, n, (clock() - cStartClock) / (double)CLOCKS_PER_SEC);
+
+sqlite3_finalize(stmt);
+sqlite3_close(db);
+
+return 0;
+</code></pre>
+<blockquote>
+<p>Imported 864913 records in 16.27
+seconds</p>
+</blockquote>
+<p>Nice! There's a little bit more code (don't forget to call <code>sqlite3_clear_bindings</code> and <code>sqlite3_reset</code>), but we've more than doubled our performance to <strong>53,000 inserts per second.</strong></p>
+<h2>PRAGMA synchronous = OFF</h2>
+<p>By default, SQLite will pause after issuing a OS-level write command. This guarantees that the data is written to the disk. By setting <code>synchronous = OFF</code>, we are instructing SQLite to simply hand-off the data to the OS for writing and then continue. There's a chance that the database file may become corrupted if the computer suffers a catastrophic crash (or power failure) before the data is written to the platter:</p>
+<pre><code>/* Open the database and create the schema */
+sqlite3_open(DATABASE, &amp;db);
+sqlite3_exec(db, TABLE, NULL, NULL, &amp;sErrMsg);
+sqlite3_exec(db, &quot;PRAGMA synchronous = OFF&quot;, NULL, NULL, &amp;sErrMsg);
+</code></pre>
+<blockquote>
+<p>Imported 864913 records in 12.41
+seconds</p>
+</blockquote>
+<p>The improvements are now smaller, but we're up to <strong>69,600 inserts per second.</strong></p>
+<h2>PRAGMA journal_mode = MEMORY</h2>
+<p>Consider storing the rollback journal in memory by evaluating <code>PRAGMA journal_mode = MEMORY</code>. Your transaction will be faster, but if you lose power or your program crashes during a transaction you database could be left in a corrupt state with a partially-completed transaction:</p>
+<pre><code>/* Open the database and create the schema */
+sqlite3_open(DATABASE, &amp;db);
+sqlite3_exec(db, TABLE, NULL, NULL, &amp;sErrMsg);
+sqlite3_exec(db, &quot;PRAGMA journal_mode = MEMORY&quot;, NULL, NULL, &amp;sErrMsg);
+</code></pre>
+<blockquote>
+<p>Imported 864913 records in 13.50
+seconds</p>
+</blockquote>
+<p>A little slower than the previous optimization at <strong>64,000 inserts per second.</strong></p>
+<h2>PRAGMA synchronous = OFF <em>and</em> PRAGMA journal_mode = MEMORY</h2>
+<p>Let's combine the previous two optimizations. It's a little more risky (in case of a crash), but we're just importing data (not running a bank):</p>
+<pre><code>/* Open the database and create the schema */
+sqlite3_open(DATABASE, &amp;db);
+sqlite3_exec(db, TABLE, NULL, NULL, &amp;sErrMsg);
+sqlite3_exec(db, &quot;PRAGMA synchronous = OFF&quot;, NULL, NULL, &amp;sErrMsg);
+sqlite3_exec(db, &quot;PRAGMA journal_mode = MEMORY&quot;, NULL, NULL, &amp;sErrMsg);
+</code></pre>
+<blockquote>
+<p>Imported 864913 records in 12.00
+seconds</p>
+</blockquote>
+<p>Fantastic! We're able to do <strong>72,000 inserts per second.</strong></p>
+<h2>Using an In-Memory Database</h2>
+<p>Just for kicks, let's build upon all of the previous optimizations and redefine the database filename so we're working entirely in RAM:</p>
+<pre><code>#define DATABASE &quot;:memory:&quot;
+</code></pre>
+<blockquote>
+<p>Imported 864913 records in 10.94
+seconds</p>
+</blockquote>
+<p>It's not super-practical to store our database in RAM, but it's impressive that we can perform <strong>79,000 inserts per second.</strong></p>
+<h2>Refactoring C Code</h2>
+<p>Although not specifically an SQLite improvement, I don't like the extra <code>char*</code> assignment operations in the <code>while</code> loop. Let's quickly refactor that code to pass the output of <code>strtok()</code> directly into <code>sqlite3_bind_text()</code>, and let the compiler try to speed things up for us:</p>
+<pre><code>pFile = fopen (INPUTDATA,&quot;r&quot;);
+while (!feof(pFile)) {
+
+    fgets (sInputBuf, BUFFER_SIZE, pFile);
+
+    sqlite3_bind_text(stmt, 1, strtok (sInputBuf, &quot;\t&quot;), -1, SQLITE_TRANSIENT); /* Get Route */
+    sqlite3_bind_text(stmt, 2, strtok (NULL, &quot;\t&quot;), -1, SQLITE_TRANSIENT);    /* Get Branch */
+    sqlite3_bind_text(stmt, 3, strtok (NULL, &quot;\t&quot;), -1, SQLITE_TRANSIENT);    /* Get Version */
+    sqlite3_bind_text(stmt, 4, strtok (NULL, &quot;\t&quot;), -1, SQLITE_TRANSIENT);    /* Get Stop Number */
+    sqlite3_bind_text(stmt, 5, strtok (NULL, &quot;\t&quot;), -1, SQLITE_TRANSIENT);    /* Get Vehicle */
+    sqlite3_bind_text(stmt, 6, strtok (NULL, &quot;\t&quot;), -1, SQLITE_TRANSIENT);    /* Get Date */
+    sqlite3_bind_text(stmt, 7, strtok (NULL, &quot;\t&quot;), -1, SQLITE_TRANSIENT);    /* Get Time */
+
+    sqlite3_step(stmt);        /* Execute the SQL Statement */
+    sqlite3_clear_bindings(stmt);    /* Clear bindings */
+    sqlite3_reset(stmt);        /* Reset VDBE */
+
+    n++;
+}
+fclose (pFile);
+</code></pre>
+<p><strong>Note: We are back to using a real database file. In-memory databases are fast, but not necessarily practical</strong></p>
+<blockquote>
+<p>Imported 864913 records in 8.94
+seconds</p>
+</blockquote>
+<p>A slight refactoring to the string processing code used in our parameter binding has allowed us to perform <strong>96,700 inserts per second.</strong> I think it's safe to say that this is <em>plenty fast</em>. As we start to tweak other variables (i.e. page size, index creation, etc.) this will be our benchmark.</p>
+<hr />
+<h2>Summary (so far)</h2>
+<p><em>I hope you're still with me!</em> The reason we started down this road is that bulk-insert performance varies so wildly with SQLite, and it's not always obvious what changes need to be made to speed-up our operation. Using the same compiler (and compiler options), the same version of SQLite and the same data we've optimized our code and our usage of SQLite to go <strong>from a worst-case scenario of 85 inserts per second to over 96,000 inserts per second!</strong></p>
+<hr />
+<h2>CREATE INDEX then INSERT vs. INSERT then CREATE INDEX</h2>
+<p>Before we start measuring <code>SELECT</code> performance, we know that we'll be creating indices. It's been suggested in one of the answers below that when doing bulk inserts, it is faster to create the index after the data has been inserted (as opposed to creating the index first then inserting the data). Let's try:</p>
+<p><strong>Create Index then Insert Data</strong></p>
+<pre><code>sqlite3_exec(db, &quot;CREATE  INDEX 'TTC_Stop_Index' ON 'TTC' ('Stop')&quot;, NULL, NULL, &amp;sErrMsg);
+sqlite3_exec(db, &quot;BEGIN TRANSACTION&quot;, NULL, NULL, &amp;sErrMsg);
+...
+</code></pre>
+<blockquote>
+<p>Imported 864913 records in 18.13
+seconds</p>
+</blockquote>
+<p><strong>Insert Data then Create Index</strong></p>
+<pre><code>...
+sqlite3_exec(db, &quot;END TRANSACTION&quot;, NULL, NULL, &amp;sErrMsg);
+sqlite3_exec(db, &quot;CREATE  INDEX 'TTC_Stop_Index' ON 'TTC' ('Stop')&quot;, NULL, NULL, &amp;sErrMsg);
+</code></pre>
+<blockquote>
+<p>Imported 864913 records in 13.66
+seconds</p>
+</blockquote>
+<p>As expected, bulk-inserts are slower if one column is indexed, but it does make a difference if the index is created after the data is inserted. Our no-index baseline is 96,000 inserts per second. <strong>Creating the index first then inserting data gives us 47,700 inserts per second, whereas inserting the data first then creating the index gives us 63,300 inserts per second.</strong></p>
+<hr />
+<p>I'd gladly take suggestions for other scenarios to try... And will be compiling similar data for SELECT queries soon.</p>
+","['c', 'performance', 'sqlite', 'optimization']",1257891403,3409,518667,13,True
+236129,How do I iterate over the words of a string?,"<p>How do I iterate over the words of a string composed of words separated by whitespace?</p>
+<p>Note that I'm not interested in C string functions or that kind of character manipulation/access. I prefer elegance over efficiency. My current solution:</p>
+<pre><code>#include &lt;iostream&gt;
+#include &lt;sstream&gt;
+#include &lt;string&gt;
+
+using namespace std;
+
+int main() {
+    string s = &quot;Somewhere down the road&quot;;
+    istringstream iss(s);
+
+    do {
+        string subs;
+        iss &gt;&gt; subs;
+        cout &lt;&lt; &quot;Substring: &quot; &lt;&lt; subs &lt;&lt; endl;
+    } while (iss);
+}
+</code></pre>
+","['c++', 'string', 'split']",1224925101,3383,2415102,85,True
+171251,How can I merge properties of two JavaScript objects?,"<p>I need to be able to merge two (very simple) JavaScript objects at runtime. For example I'd like to:</p>
+<pre><code>var obj1 = { food: 'pizza', car: 'ford' }
+var obj2 = { animal: 'dog' }
+
+obj1.merge(obj2);
+
+//obj1 now has three properties: food, car, and animal
+</code></pre>
+<p>Is there a built in way to do this? I do not need recursion, and I do not need to merge functions, just methods on flat objects.</p>
+","['javascript', 'javascript-objects']",1223166654,3370,2091812,69,True
+20035101,"Why does my JavaScript code receive a &quot;No &#39;Access-Control-Allow-Origin&#39; header is present on the requested resource&quot; error, while Postman does not?","<blockquote>
+<p><strong>Mod note</strong>: This question is about why <code>XMLHttpRequest</code>/<code>fetch</code>/etc. on the browser are subject to the Same Access Policy restrictions (you get errors mentioning CORB or CORS) while Postman is not. This question is <strong>not</strong> about how to fix a &quot;No 'Access-Control-Allow-Origin'...&quot; error. It's about why they happen.</p>
+</blockquote>
+<blockquote>
+<p><strong>Please stop posting</strong>:</p>
+<ul>
+<li>CORS configurations for every language/framework under the sun. Instead <a href=""https://stackoverflow.com/search?q=how+to+enable+CORS+is%3Aquestion&amp;mixed=1"">find your relevant language/framework's question</a>.</li>
+<li>3rd party services that allow a request to circumvent CORS</li>
+<li>Command line options for turning off CORS for various browsers</li>
+</ul>
+</blockquote>
+<hr />
+<p>I am trying to do authorization using <a href=""http://en.wikipedia.org/wiki/JavaScript"" rel=""noreferrer"">JavaScript</a> by connecting to the <a href=""http://en.wikipedia.org/wiki/Representational_state_transfer#RESTful_web_services"" rel=""noreferrer"">RESTful</a> <a href=""http://en.wikipedia.org/wiki/Application_programming_interface"" rel=""noreferrer"">API</a> built-in <a href=""https://en.wikipedia.org/wiki/Flask_%28web_framework%29"" rel=""noreferrer"">Flask</a>. However, when I make the request, I get the following error:</p>
+<pre class=""lang-js prettyprint-override""><code>XMLHttpRequest cannot load http://myApiUrl/login. 
+No 'Access-Control-Allow-Origin' header is present on the requested resource. 
+Origin 'null' is therefore not allowed access.
+</code></pre>
+<p>I know that the API or remote resource must set the header, but why did it work when I made the request via the Chrome extension <a href=""https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop"" rel=""noreferrer"">Postman</a>?</p>
+<p>This is the request code:</p>
+<pre class=""lang-js prettyprint-override""><code>$.ajax({
+  type: 'POST',
+  dataType: 'text',
+  url: api,
+  username: 'user',
+  password: 'pass',
+  crossDomain: true,
+  xhrFields: {
+    withCredentials: true,
+  },
+})
+  .done(function (data) {
+    console.log('done');
+  })
+  .fail(function (xhr, textStatus, errorThrown) {
+    alert(xhr.responseText);
+    alert(textStatus);
+  });
+</code></pre>
+","['javascript', 'jquery', 'cors', 'postman', 'same-origin-policy']",1384716546,3361,6538757,16,True
+2612802,How do I clone a list so that it doesn&#39;t change unexpectedly after assignment?,"<p>While using <code>new_list = my_list</code>, any modifications to <code>new_list</code> changes <code>my_list</code> every time. Why is this, and how can I clone or copy the list to prevent it? For example:</p>
+<pre><code>&gt;&gt;&gt; my_list = [1, 2, 3]
+&gt;&gt;&gt; new_list = my_list
+&gt;&gt;&gt; new_list.append(4)
+&gt;&gt;&gt; my_list
+[1, 2, 3, 4]
+</code></pre>
+","['python', 'list', 'clone', 'mutable']",1270889386,3360,2270803,25,True
+4775722,How can I check if an object is an array?,"<p>I'm trying to write a function that either accepts a list of strings, or a single string. If it's a string, then I want to convert it to an array with just the one item so I can loop over it without fear of an error.</p>
+<p>So how do I check if the variable is an array?</p>
+","['javascript', 'arrays', 'javascript-objects']",1295808784,3355,2109528,51,True
+986006,How do I pass a variable by reference?,"<p>I wrote this class for testing:</p>
+<pre><code>class PassByReference:
+    def __init__(self):
+        self.variable = 'Original'
+        self.change(self.variable)
+        print(self.variable)
+
+    def change(self, var):
+        var = 'Changed'
+</code></pre>
+<p>When I tried creating an instance, the output was <code>Original</code>. So it seems like parameters in Python are passed by value. Is that correct? How can I modify the code to get the effect of pass-by-reference, so that the output is <code>Changed</code>?</p>
+<hr />
+<p><sub>Sometimes people are surprised that code like <code>x = 1</code>, where <code>x</code> is a parameter name, doesn't impact on the caller's argument, but code like <code>x[0] = 1</code> does. This happens because <em>item assignment</em> and <em>slice assignment</em> are ways to <strong>mutate</strong> an existing object, rather than reassign a variable, despite the <code>=</code> syntax. See <a href=""https://stackoverflow.com/questions/575196/"">Why can a function modify some arguments as perceived by the caller, but not others?</a> for details.</sub></p>
+<p><sub>See also <a href=""https://stackoverflow.com/questions/373419/"">What&#39;s the difference between passing by reference vs. passing by value?</a> for important, language-agnostic terminology discussion.</sub></p>
+","['python', 'reference', 'parameter-passing', 'pass-by-reference']",1244802231,3354,2186406,43,True
+141088,How to iterate over a dictionary?,"<p>I've seen a few different ways to iterate over a dictionary in C#.  Is there a standard way?</p>
+","['c#', 'dictionary', 'loops']",1222453206,3346,2523531,20,True
+1186535,How do I modify a specific commit?,"<p>I have the following commit history:</p>
+<ol>
+<li><code>HEAD</code></li>
+<li><code>HEAD~</code></li>
+<li><code>HEAD~2</code></li>
+<li><code>HEAD~3</code></li>
+</ol>
+<p><code>git commit --amend</code> modifies the current <code>HEAD</code> commit. But how do I modify <code>HEAD~3</code>?</p>
+","['git', 'git-rewrite-history']",1248671947,3340,1729794,23,True
+5235142,How do I disable the resizable property of a textarea?,"<p>I want to disable the resizable property of a <code>textarea</code>.</p>
+
+<p>Currently, I can resize a <code>textarea</code> by clicking on the bottom right corner of the <code>textarea</code> and dragging the mouse. How can I disable this?</p>
+
+<p><a href=""https://i.sstatic.net/xrfWQ.png"" rel=""noreferrer""><img src=""https://i.sstatic.net/xrfWQ.png"" alt=""Enter image description here""></a></p>
+","['html', 'css', 'resize', 'textarea']",1299600940,3340,1888175,21,True
+37576685,Using async/await with a forEach loop,"<p>Are there any issues with using <code>async</code>/<code>await</code> in a <code>forEach</code> loop? I'm trying to loop through an array of files and <code>await</code> on the contents of each file.</p>
+<pre><code>import fs from 'fs-promise'
+
+async function printFiles () {
+  const files = await getFilePaths() // Assume this works fine
+
+  files.forEach(async (file) =&gt; {
+    const contents = await fs.readFile(file, 'utf8')
+    console.log(contents)
+  })
+}
+
+printFiles()
+</code></pre>
+<p>This code does work, but could something go wrong with this? I had someone tell me that you're not supposed to use <code>async</code>/<code>await</code> in a higher-order function like this, so I just wanted to ask if there was any issue with this.</p>
+","['javascript', 'node.js', 'promise', 'async-await', 'ecmascript-2017']",1464807358,3322,2420711,35,True
+92082,How to add a column with a default value to an existing table in SQL Server?,"<p>How can I add a column with a default value to an existing table in <a href=""http://en.wikipedia.org/wiki/Microsoft_SQL_Server#Genesis"" rel=""noreferrer"">SQL Server 2000</a> / <a href=""http://en.wikipedia.org/wiki/Microsoft_SQL_Server#SQL_Server_2005"" rel=""noreferrer"">SQL Server 2005</a>?</p>
+","['sql', 'sql-server', 'sql-server-2005', 'sql-server-2000']",1221741004,3321,3902396,45,True
+9834689,How can I see the differences between two branches?,"<p>How can I see the differences between branches <code>branch_1</code> and <code>branch_2</code>?</p>
+","['git', 'git-diff']",1332481668,3321,2687407,12,True
+2052390,Manually raising (throwing) an exception in Python,"<p>How do I raise an exception in Python so that it can later be caught via an <code>except</code> block?</p>
+","['python', 'exception']",1263330460,3309,3309390,11,True
+287871,How do I print colored text to the terminal?,"<p>How do I output colored text to the terminal in Python?</p>
+","['python', 'terminal', 'output', 'ansi-colors']",1226602690,3306,2713888,67,True
+9270734,ssh &quot;permissions are too open&quot;,"<p>I get the following error from ssh:</p>
+<pre><code>Permissions 0777 for '/Users/username/.ssh/id_rsa' are too open.
+It is recommended that your private key files are NOT accessible by others.
+This private key will be ignored.
+</code></pre>
+<p>What permissions should I give to the id_rsa file?</p>
+","['permissions', 'ssh']",1329184951,3291,3023824,36,True
+576169,Understanding Python super() with __init__() methods,"<p>Why is <code>super()</code> used?</p>
+<p>Is there a difference between using <code>Base.__init__</code> and <code>super().__init__</code>?</p>
+<pre><code>class Base(object):
+    def __init__(self):
+        print &quot;Base created&quot;
+        
+class ChildA(Base):
+    def __init__(self):
+        Base.__init__(self)
+        
+class ChildB(Base):
+    def __init__(self):
+        super(ChildB, self).__init__()
+        
+ChildA() 
+ChildB()
+</code></pre>
+","['python', 'class', 'oop', 'inheritance', 'super']",1235349008,3284,2913309,7,True
+510348,How do I make a time delay?,"<p>How do I put a time delay in a Python script?</p>
+","['python', 'delay', 'sleep', 'timedelay']",1233731049,3275,3912179,13,True
+1357118,event.preventDefault() vs. return false,"<p>When I want to prevent other event handlers from executing after a certain event is fired, I can use one of two techniques. I'll use jQuery in the examples, but this applies to plain-JS as well:</p>
+
+<h3>1. <code>event.preventDefault()</code></h3>
+
+<pre><code>$('a').click(function (e) {
+    // custom handling here
+    e.preventDefault();
+});
+</code></pre>
+
+<h3>2. <code>return false</code></h3>
+
+<pre><code>$('a').click(function () {
+    // custom handling here
+    return false;
+});
+</code></pre>
+
+<p>Is there any significant difference between those two methods of stopping event propagation?</p>
+
+<p>For me, <code>return false;</code> is simpler, shorter and probably less error prone than executing a method. With the method, you have to remember about correct casing, parenthesis, etc. </p>
+
+<p>Also, I have to define the first parameter in callback to be able to call the method. Perhaps, there are some reasons why I should avoid doing it like this and use <code>preventDefault</code> instead? What's the better way?</p>
+","['javascript', 'jquery', 'event-handling', 'dom-events', 'event-propagation']",1251719911,3268,943378,14,True
+3042437,How can I change the commit author for a single commit?,"<p>I want to change the author of one specific commit in the history. It's not the latest commit.</p>
+<p><strong>Related:</strong> <a href=""https://stackoverflow.com/questions/750172/how-do-i-change-the-author-of-a-commit-in-git"">How do I change the author and committer name/email for multiple commits?</a></p>
+","['git', 'git-commit']",1276574408,3266,1904230,33,True
+2530,How do you disable browser autocomplete on web form field / input tags?,"<p>How do you disable autocomplete in the major browsers for a specific input (or form field)?</p>
+","['html', 'forms', 'browser', 'autocomplete']",1217953352,3264,1480741,108,True
+750486,JavaScript closure inside loops – simple practical example,"<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""true"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-js lang-js prettyprint-override""><code>var funcs = [];
+// let's create 3 functions
+for (var i = 0; i &lt; 3; i++) {
+  // and store them in funcs
+  funcs[i] = function() {
+    // each should log its value.
+    console.log(""My value:"", i);
+  };
+}
+for (var j = 0; j &lt; 3; j++) {
+  // and now let's run each one to see
+  funcs[j]();
+}</code></pre>
+</div>
+</div>
+</p>
+<p>It outputs this:</p>
+<blockquote>
+<p>My value: 3<br />
+My value: 3<br />
+My value: 3</p>
+</blockquote>
+<p>Whereas I'd like it to output:</p>
+<blockquote>
+<p>My value: 0<br />
+My value: 1<br />
+My value: 2</p>
+</blockquote>
+<hr />
+<p>The same problem occurs when the delay in running the function is caused by using event listeners:</p>
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""true"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-js lang-js prettyprint-override""><code>var buttons = document.getElementsByTagName(""button"");
+// let's create 3 functions
+for (var i = 0; i &lt; buttons.length; i++) {
+  // as event listeners
+  buttons[i].addEventListener(""click"", function() {
+    // each should log its value.
+    console.log(""My value:"", i);
+  });
+}</code></pre>
+<pre class=""snippet-code-html lang-html prettyprint-override""><code>&lt;button&gt;0&lt;/button&gt;
+&lt;br /&gt;
+&lt;button&gt;1&lt;/button&gt;
+&lt;br /&gt;
+&lt;button&gt;2&lt;/button&gt;</code></pre>
+</div>
+</div>
+</p>
+<p>… or asynchronous code, e.g. using Promises:</p>
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""true"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-js lang-js prettyprint-override""><code>// Some async wait function
+const wait = (ms) =&gt; new Promise((resolve, reject) =&gt; setTimeout(resolve, ms));
+
+for (var i = 0; i &lt; 3; i++) {
+  // Log `i` as soon as each promise resolves.
+  wait(i * 100).then(() =&gt; console.log(i));
+}</code></pre>
+</div>
+</div>
+</p>
+<p>It is also apparent in <code>for in</code> and <code>for of</code> loops:</p>
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""true"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-js lang-js prettyprint-override""><code>const arr = [1,2,3];
+const fns = [];
+
+for (var i in arr){
+  fns.push(() =&gt; console.log(""index:"", i));
+}
+
+for (var v of arr){
+  fns.push(() =&gt; console.log(""value:"", v));
+}
+
+for (const n of arr) {
+  var obj = { number: n }; // or new MyLibObject({ ... })
+  fns.push(() =&gt; console.log(""n:"", n, ""|"", ""obj:"", JSON.stringify(obj)));
+}
+
+for(var f of fns){
+  f();
+}</code></pre>
+</div>
+</div>
+</p>
+<p>What’s the solution to this basic problem?</p>
+","['javascript', 'loops', 'closures']",1239775580,3263,488353,45,True
+34571,"How do I test a class that has private methods, fields or inner classes?","<p>How do I use JUnit to test a class that has internal private methods, fields or nested classes?</p>
+<p>It seems bad to change the access modifier for a method just to be able to run a test.</p>
+","['java', 'unit-testing', 'junit', 'tdd']",1220026269,3262,1335035,59,True
+332289,How do I change the size of figures drawn with Matplotlib?,"<p>How do I change the size of figure drawn with Matplotlib?</p>
+","['python', 'pandas', 'matplotlib', 'seaborn', 'figsize']",1228166684,3259,6335149,16,True
+101752,I ran into a merge conflict. How do I abort the merge?,"<p>I used <code>git pull</code> and had a merge conflict:</p>
+<pre><code>unmerged:   some_file.txt
+
+You are in the middle of a conflicted merge.
+</code></pre>
+<p>How do I abandon my changes to the file and keep only the pulled changes?</p>
+","['git', 'version-control', 'git-merge', 'git-merge-conflict']",1221830460,3257,2750324,14,True
+27509,Detecting an undefined object property,"<p>How do I check if an object property in JavaScript is undefined?</p>
+","['javascript', 'object', 'undefined', 'object-property']",1219735508,3247,1519945,49,True
+953481,How do I find and restore a deleted file in a Git repository?,"<p>Say I'm in a Git repository. I delete a file and commit that change. I continue working and make some more commits. Then, I discover that I need to restore that file after deleting it.</p>
+<p>I know I can checkout a file using <code>git checkout &lt;commit&gt; -- filename.txt</code>, but I don't know when that file was deleted.</p>
+<ol>
+<li>How do I find the commit that deleted a given filename?</li>
+<li>How do I restore that file back into my working copy?</li>
+</ol>
+","['git', 'file-io', 'git-checkout']",1244155234,3242,1172401,30,True
+818255,What does &quot; 2&gt;&amp;1 &quot; mean?,"<p>To combine <code>stderr</code> and <code>stdout</code> into the <code>stdout</code> stream, we append this to a command:</p>
+<pre><code>2&gt;&amp;1
+</code></pre>
+<p>For example, the following command shows the first few errors from compiling <code>main.cpp</code>:</p>
+<pre><code>g++ main.cpp 2&gt;&amp;1 | head
+</code></pre>
+<p>But what does <code>2&gt;&amp;1</code> mean?</p>
+","['bash', 'shell', 'unix']",1241391420,3240,1925504,19,True
+1720421,How do I concatenate two lists in Python?,"<p>How do I concatenate two lists in Python?</p>
+
+<p>Example:</p>
+
+<pre><code>listone = [1, 2, 3]
+listtwo = [4, 5, 6]
+</code></pre>
+
+<p>Expected outcome:</p>
+
+<pre><code>&gt;&gt;&gt; joinedlist
+[1, 2, 3, 4, 5, 6]
+</code></pre>
+","['python', 'list', 'concatenation']",1258009449,3238,4779944,31,True
+53513,How do I check if a list is empty?,"<p>For example, if passed the following:</p>
+
+<pre><code>a = []
+</code></pre>
+
+<p>How do I check to see if <code>a</code> is empty?</p>
+","['python', 'list']",1221027611,3222,5294937,27,True
+978061,HTTP GET with request body,"<p>I'm developing a new RESTful webservice for our application.</p>
+<p>When doing a GET on certain entities, clients can request the contents of the entity.
+If they want to add some parameters (for example sorting a list) they can add these parameters in the query string.</p>
+<p>Alternatively I want people to be able to specify these parameters in the request body.
+<a href=""https://www.rfc-editor.org/rfc/rfc2616"" rel=""noreferrer"">HTTP/1.1</a> does not seem to explicitly forbid this. This will allow them to specify more information, might make it easier to specify complex XML requests.</p>
+<p>My questions:</p>
+<ul>
+<li>Is this a good idea altogether?</li>
+<li>Will HTTP clients have issues with using request bodies within a GET request?</li>
+</ul>
+<p><a href=""https://www.rfc-editor.org/rfc/rfc2616"" rel=""noreferrer"">https://www.rfc-editor.org/rfc/rfc2616</a></p>
+","['rest', 'http', 'http-get']",1244666844,3220,2604831,26,True
+9537392,`git fetch` a remote branch,"<p>The remote repository contains various branches such as <code>origin/daves_branch</code>:</p>
+<pre><code>$ git branch -r
+origin/HEAD -&gt; origin/master
+origin/daves_branch
+origin/master
+</code></pre>
+<p>How do I switch to <code>daves_branch</code> in the local repository so that it tracks <code>origin/daves_branch</code>?</p>
+<p>I tried:</p>
+<pre><code>$ git fetch origin daves_branch
+$ git checkout daves_branch
+</code></pre>
+","['git', 'branch', 'git-branch', 'git-fetch']",1330708016,3219,4783429,31,True
+409286,Should I use the datetime or timestamp data type in MySQL?,"<p>Would you recommend using a <a href=""https://dev.mysql.com/doc/refman/5.0/en/datetime.html"" rel=""noreferrer"">datetime</a> or a <a href=""https://dev.mysql.com/doc/refman/5.0/en/datetime.html"" rel=""noreferrer"">timestamp</a> field, and why (using MySQL)? </p>
+
+<p>I'm working with PHP on the server side.</p>
+","['mysql', 'datetime', 'timestamp', 'sqldatatypes']",1230999277,3214,1174959,40,True
+592620,How can I check if a program exists from a Bash script?,"<p>How would I validate that a program exists, in a way that will either return an error and exit, or continue with the script?</p>
+
+<p>It seems like it should be easy, but it's been stumping me.</p>
+",['bash'],1235685169,3203,1277012,38,True
+739654,How do I make function decorators and chain them together?,"<p>How do I make two decorators in Python that would do the following?</p>
+<pre><code>@make_bold
+@make_italic
+def say():
+   return &quot;Hello&quot;
+</code></pre>
+<p>Calling <code>say()</code> should return:</p>
+<pre><code>&quot;&lt;b&gt;&lt;i&gt;Hello&lt;/i&gt;&lt;/b&gt;&quot;
+</code></pre>
+","['python', 'function', 'decorator', 'python-decorators', 'chain']",1239433531,3196,685166,22,True
+750172,How do I change the author and committer name/email for multiple commits?,"<p>How do I change the author for a range of commits?</p>
+","['git', 'version-control', 'git-filter-branch', 'git-rewrite-history']",1239764964,3192,1275087,46,True
+23569441,Is it possible to apply CSS to half of a character?,"<p><strong>What I am looking for:</strong></p>
+<p>A way to style one <strong>HALF</strong> of a character. (In this case, half the letter being transparent)</p>
+<p><strong>What I have currently searched for and tried (With no luck):</strong></p>
+<ul>
+<li>Methods for styling half of a character/letter</li>
+<li>Styling part of a character with CSS or JavaScript</li>
+<li>Apply CSS to 50% of a character</li>
+</ul>
+<p>Below is an example of what I am trying to obtain.</p>
+<p><img src=""https://i.sstatic.net/SaH8v.png"" alt=""x"" /></p>
+<p>Does a CSS or JavaScript solution exist for this, or am I going to have to resort to images? I would prefer not to go the image route as this text will end up being generated dynamically.</p>
+","['javascript', 'html', 'css']",1399652217,3191,294254,20,True
+1555109,How to stop EditText from gaining focus when an activity starts in Android?,"<p>I have an <code>Activity</code> in Android, with two elements:</p>
+<ol>
+<li><code>EditText</code></li>
+<li><code>ListView</code></li>
+</ol>
+<p>When my <code>Activity</code> starts, the <code>EditText</code> immediately has the input focus (flashing cursor). I don't want any control to have input focus at startup. I tried:</p>
+<pre><code>EditText.setSelected(false);
+EditText.setFocusable(false);
+</code></pre>
+<p>No luck. How can I convince the <code>EditText</code> to not select itself when the <code>Activity</code> starts?</p>
+","['android', 'listview', 'android-activity', 'android-edittext', 'focus']",1255359802,3181,835998,54,True
+332030,"When should static_cast, dynamic_cast, const_cast, and reinterpret_cast be used?","<p>What are the proper uses of:</p>
+<ul>
+<li><a href=""https://en.cppreference.com/w/cpp/language/static_cast"" rel=""noreferrer""><code>static_cast</code></a></li>
+<li><a href=""https://en.cppreference.com/w/cpp/language/dynamic_cast"" rel=""noreferrer""><code>dynamic_cast</code></a></li>
+<li><a href=""https://en.cppreference.com/w/cpp/language/const_cast"" rel=""noreferrer""><code>const_cast</code></a></li>
+<li><a href=""https://en.cppreference.com/w/cpp/language/reinterpret_cast"" rel=""noreferrer""><code>reinterpret_cast</code></a></li>
+<li><a href=""https://en.cppreference.com/w/cpp/language/explicit_cast"" rel=""noreferrer""><code>(type)value</code></a> (C-style cast)</li>
+<li><a href=""https://en.cppreference.com/w/cpp/language/explicit_cast"" rel=""noreferrer""><code>type(value)</code></a> (function-style cast)</li>
+</ul>
+<p>How does one decide which to use in which specific cases?</p>
+","['c++', 'pointers', 'casting', 'c++-faq']",1228162267,3173,821047,12,True
+47981,"How to set, clear, and toggle a single bit","<p>How can I set, clear, and toggle a bit?</p>
+","['c++', 'c', 'bit-manipulation', 'bitwise-operators']",1220748137,3167,1709560,28,True
+31044,Is there an &quot;exists&quot; function for jQuery?,"<p>How can I check the existence of an element in jQuery?</p>
+
+<p>The current code that I have is this:</p>
+
+<pre><code>if ($(selector).length &gt; 0) {
+    // Do something
+}
+</code></pre>
+
+<p>Is there a more elegant way to approach this? Perhaps a plugin or a function?</p>
+","['javascript', 'jquery']",1219866581,3165,871632,17,True
+651038,How do I clone a Git repository into a specific folder?,"<p>The command <code>git clone git@github.com:whatever</code> creates a directory named <code>whatever</code> containing a Git repository:</p>
+<pre><code>./
+    whatever/
+        .git
+</code></pre>
+<p>I want the contents of the Git repository cloned into my current directory <code>./</code> instead:</p>
+<pre><code>./
+    .git
+</code></pre>
+","['git', 'repository', 'git-clone']",1237219014,3165,3278451,22,True
+3855127,Find (and kill) processes listening to port 3000 on Mac,"<p>How do I manually find (and kill) process using the terminal that listen to/use my TCP ports? I'm on macOS.</p>
+<p>Sometimes, after a crash or bug, my Rails app gets locked to port 3000, and I can't find it using <code>ps -ef</code>...</p>
+<p>When running</p>
+<pre><code>rails server
+</code></pre>
+<p>I get</p>
+<pre><code>Address already in use - bind(2) (Errno::EADDRINUSE)
+</code></pre>
+<p>The same issue happens when stopping the Node.js process. Even after the process is stopped and the app stops running, port <code>3000</code> is locked. When starting the app again, getting</p>
+<pre><code>Address already in use (Errno::EADDRINUSE)
+</code></pre>
+","['macos', 'tcp', 'process', 'port']",1286194756,3163,4927233,40,True
+166221,How can I upload files asynchronously with jQuery?,"<p>I would like to upload a file asynchronously with jQuery. </p>
+
+<p><div class=""snippet"" data-lang=""js"" data-hide=""false"" data-console=""true"" data-babel=""false"">
+<div class=""snippet-code"">
+<pre class=""snippet-code-js lang-js prettyprint-override""><code>$(document).ready(function () {
+    $(""#uploadbutton"").click(function () {
+        var filename = $(""#file"").val();
+
+        $.ajax({
+            type: ""POST"",
+            url: ""addFile.do"",
+            enctype: 'multipart/form-data',
+            data: {
+                file: filename
+            },
+            success: function () {
+                alert(""Data Uploaded: "");
+            }
+        });
+    });
+});</code></pre>
+<pre class=""snippet-code-html lang-html prettyprint-override""><code>&lt;script src=""https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js""&gt;&lt;/script&gt;
+&lt;span&gt;File&lt;/span&gt;
+&lt;input type=""file"" id=""file"" name=""file"" size=""10""/&gt;
+&lt;input id=""uploadbutton"" type=""button"" value=""Upload""/&gt;</code></pre>
+</div>
+</div>
+</p>
+
+<p>Instead of the file being uploaded, I am only getting the filename. What can I do to fix this problem?</p>
+","['javascript', 'jquery', 'ajax', 'asynchronous', 'xmlhttprequest']",1223029337,3162,1510720,34,True
+312443,How do I split a list into equally-sized chunks?,"<p>How do I split a list of arbitrary length into equal sized chunks?</p>
+<hr />
+<p><sub>See also: <a href=""https://stackoverflow.com/q/434287"">How to iterate over a list in chunks</a>.<br />
+To chunk strings, see <a href=""https://stackoverflow.com/questions/9475241"">Split string every nth character?</a>.</sub></p>
+","['python', 'list', 'split', 'chunks']",1227442552,3159,1761773,69,True
+21593,What is the difference between #include &lt;filename&gt; and #include &quot;filename&quot;?,"<p>What is the difference between using angle brackets and quotes in an <code>include</code> directive?</p>
+<ul>
+<li><code>#include &lt;filename&gt;</code></li>
+<li><code>#include &quot;filename&quot;</code></li>
+</ul>
+","['c++', 'c', 'include', 'header-files', 'c-preprocessor']",1219369206,3152,949169,30,True
+19578796,What is the --save option for npm install?,"<p>I saw some tutorial where the command was:</p>
+<pre><code>npm install --save
+</code></pre>
+<p>What does the <code>--save</code> option mean?</p>
+","['node.js', 'npm']",1382658851,3150,1218044,17,True
+5515310,"Is there a standard function to check for null, undefined, or blank variables in JavaScript?","<p>Is there a universal JavaScript function that checks that a variable has a value and ensures that it's not <code>undefined</code> or <code>null</code>? I've got this code, but I'm not sure if it covers all cases:</p>
+<pre><code>function isEmpty(val){
+    return (val === undefined || val == null || val.length &lt;= 0) ? true : false;
+}
+</code></pre>
+","['javascript', 'null', 'comparison', 'undefined']",1301670864,3134,3111367,47,True
+24958140,What is the difference between the &#39;COPY&#39; and &#39;ADD&#39; commands in a Dockerfile?,"<p>What is the difference between the <code>COPY</code> and <code>ADD</code> commands in a Dockerfile, and when would I use one over the other?</p>
+
+<pre><code>COPY &lt;src&gt; &lt;dest&gt;
+</code></pre>
+
+<blockquote>
+  <p>The COPY instruction will copy new files from <code>&lt;src&gt;</code> and add them to the container's filesystem at path <code>&lt;dest&gt;</code></p>
+</blockquote>
+
+<pre><code>ADD &lt;src&gt; &lt;dest&gt;
+</code></pre>
+
+<blockquote>
+  <p>The ADD instruction will copy new files from <code>&lt;src&gt;</code> and add them to the container's filesystem at path <code>&lt;dest&gt;</code>.</p>
+</blockquote>
+","['docker', 'dockerfile']",1406298680,3134,1110681,17,True
+4351521,How do I pass command line arguments to a Node.js program and receive them?,"<p>I have a web server written in <a href=""http://en.wikipedia.org/wiki/Node.js"" rel=""noreferrer"">Node.js</a> and I would like to launch with a specific folder. I'm not sure how to access arguments in JavaScript. I'm running node like this:</p>
+
+<pre><code>$ node server.js folder
+</code></pre>
+
+<p>here <code>server.js</code> is my server code. Node.js help says this is possible:</p>
+
+<pre><code>$ node -h
+Usage: node [options] script.js [arguments]
+</code></pre>
+
+<p>How would I access those arguments in JavaScript? Somehow I was not able to find this information on the web.</p>
+","['javascript', 'node.js', 'arguments', 'command-line-arguments']",1291427806,3131,1934891,42,True
+2785485,Is there a unique Android device ID?,"<p>Do Android devices have a unique ID, and if so, what is a simple way to access it using Java?</p>
+","['android', 'uniqueidentifier']",1273193248,3117,1313325,54,True
+5137497,Find the current directory and file&#39;s directory,"<p>How do I determine:</p>
+<ol>
+<li>the current directory (where I was in the shell when I ran the Python script), and</li>
+<li>where the Python file I am executing is?</li>
+</ol>
+","['python', 'directory']",1298857881,3115,5375581,13,True
+5905054,How can I recursively find all files in current and subfolders based on wildcard matching?,"<p>How can I recursively find all files in current and subfolders based on wildcard matching?</p>
+","['linux', 'shell']",1304636494,3112,5007652,19,True
+252703,What is the difference between Python&#39;s list methods append and extend?,"<p>What's the difference between the list methods <code>append()</code> and <code>extend()</code>?</p>
+","['python', 'list', 'data-structures', 'append', 'extend']",1225432536,3110,3312922,20,True
+369602,Deleting an element from an array in PHP,"<p>Is there an easy way to delete an element from an array using PHP, such that <code>foreach ($array)</code> no longer includes that element?</p>
+
+<p>I thought that setting it to <code>null</code> would do it, but apparently it does not work.</p>
+","['php', 'arrays', 'unset']",1229372935,3107,3843971,26,True
+2010892,How to store objects in HTML5 localStorage/sessionStorage,"<p>I'd like to store a JavaScript object in HTML5 <code>localStorage</code>, but my object is apparently being converted to a string.</p>
+<p>I can store and retrieve primitive JavaScript types and arrays using <code>localStorage</code>, but objects don't seem to work.  Should they?</p>
+<p>Here's my code:</p>
+<pre><code>var testObject = { 'one': 1, 'two': 2, 'three': 3 };
+console.log('typeof testObject: ' + typeof testObject);
+console.log('testObject properties:');
+for (var prop in testObject) {
+    console.log('  ' + prop + ': ' + testObject[prop]);
+}
+
+// Put the object into storage
+localStorage.setItem('testObject', testObject);
+
+// Retrieve the object from storage
+var retrievedObject = localStorage.getItem('testObject');
+
+console.log('typeof retrievedObject: ' + typeof retrievedObject);
+console.log('Value of retrievedObject: ' + retrievedObject);
+</code></pre>
+<p>The console output is</p>
+<pre class=""lang-none prettyprint-override""><code>typeof testObject: object
+testObject properties:
+  one: 1
+  two: 2
+  three: 3
+typeof retrievedObject: string
+Value of retrievedObject: [object Object]
+</code></pre>
+<p>It looks to me like the <code>setItem</code> method is converting the input to a string before storing it.</p>
+<p>I see this behavior in Safari, Chrome, and Firefox, so I assume it's my misunderstanding of the <a href=""http://www.w3.org/TR/webstorage/"" rel=""noreferrer"">HTML5 Web Storage</a> specification, not a browser-specific bug or limitation.</p>
+<p>I've tried to make sense of the <em>structured clone</em> algorithm described in <em><a href=""https://html.spec.whatwg.org/multipage/infrastructure.html#infrastructure"" rel=""noreferrer"">2 Common infrastructure</a></em>.  I don't fully understand what it's saying, but maybe my problem has to do with my object's properties not being enumerable (???).</p>
+<p>Is there an easy workaround?</p>
+<hr />
+<p>Update: The W3C eventually changed their minds about the structured-clone specification, and decided to change the spec to match the implementations.  See <em><a href=""https://www.w3.org/Bugs/Public/show_bug.cgi?id=12111"" rel=""noreferrer"">12111 – spec for Storage object getItem(key) method does not match implementation behavior</a></em>. So this question is no longer 100% valid, but the answers still may be of interest.</p>
+","['javascript', 'html', 'local-storage']",1262750751,3101,1486479,24,True

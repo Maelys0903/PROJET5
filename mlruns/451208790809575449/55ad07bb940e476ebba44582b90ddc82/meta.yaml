@@ -1,0 +1,14 @@
+artifact_uri: file:///C:/Mes documents/OpenClassRooms/PROJET5/mlruns/451208790809575449/55ad07bb940e476ebba44582b90ddc82/artifacts
+end_time: 1750934076509
+entry_point_name: ''
+experiment_id: '451208790809575449'
+lifecycle_stage: active
+run_id: 55ad07bb940e476ebba44582b90ddc82
+run_name: LogReg_TFIDF_TopTags
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1750934068182
+status: 3
+tags: []
+user_id: maely
