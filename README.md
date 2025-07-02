@@ -1,13 +1,29 @@
-# API de Prédiction de Mots-clés
+# Projet 5 - API de prédiction de mots clés
 
-Ce projet propose une API REST permettant de prédire des mots-clés à partir d’un texte. L’API repose sur un modèle supervisé entraîné avec MLflow et exposé via FastAPI.
+## Description
 
-## Arborescence du projet
+Ce projet consiste à développer une API REST utilisant FastAPI, capable de prédire des mots clés (tags) à partir d’un texte donné. L’objectif est d’automatiser la suggestion de tags pertinents pour faciliter le classement et la recherche de contenus.
 
-- `app/` : Code de l’API
-- `tests/` : Tests unitaires
-- `.github/workflows/` : Déploiement continu avec GitHub Actions
-- `requirements.txt` : Liste des dépendances Python
-- `mlops_note.md` : Note technique sur l’approche MLOps
+Le projet intègre également une chaîne d’intégration continue (CI) avec GitHub Actions pour exécuter automatiquement les tests unitaires à chaque push vers le dépôt GitHub.
 
-## Instructions de démarrage (prochainement)
+---
+
+## Structure du projet
+
+```plaintext
+projet5-api/
+│
+├── app/
+│   ├── main.py          # Point d'entrée de l'API FastAPI
+│   ├── model.py         # Implémentation de la fonction de prédiction
+│   ├── utils.py         # Fonctions utilitaires
+│   └── __init__.py
+│
+├── tests/
+│   └── test_main.py     # Tests unitaires pour l'API
+│
+├── requirements.txt     # Liste des packages Python requis
+├── README.md            # Ce fichier
+├── .github/
+│   └── workflows/
+│       └── ci.yml       # Pipeline GitHub Actions pour la 

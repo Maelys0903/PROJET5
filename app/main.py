@@ -9,15 +9,15 @@ app = FastAPI(
     version="1.0"
 )
 
-# ✅ Classe d'entrée pour validation des données
+# Classe d'entrée pour validation des données
 class TextInput(BaseModel):
     text: str
 
-# ✅ Classe de sortie pour formatage de la réponse
+# Classe de sortie pour formatage de la réponse
 class PredictionResponse(BaseModel):
     keywords: List[str]
 
-# ✅ Route principale de prédiction
+# Route principale de prédiction
 @app.post("/predict", response_model=PredictionResponse)
 def predict_keywords(input: TextInput):
     predicted = predict_tags(input.text) # Appelle le modèle ML
