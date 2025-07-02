@@ -26,4 +26,4 @@ projet5-api/
 ├── README.md            # Ce fichier
 ├── .github/
 │   └── workflows/
-│       └── ci.yml       # Pipeline GitHub Actions pour la 
+│       └── pyhton-app.yml       # Pipeline GitHub Actions pour la 
