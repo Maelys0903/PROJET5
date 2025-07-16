@@ -13,3 +13,4 @@ torch
 mlflow
 python-multipart
 sentence-transformers
+httpx
