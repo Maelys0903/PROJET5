@@ -1,3 +1,5 @@
+numpy
+pandas
 fastapi
 uvicorn
 scikit-learn
@@ -9,3 +11,5 @@ gensim
 transformers
 torch
 mlflow
+python-multipart
+sentence-transformers
