@@ -23,10 +23,13 @@ def test_predict_valid(monkeypatch):
         return MockPipeline()
 
     monkeypatch.setattr("mlflow.pyfunc.load_model", mock_load_model)
+    monkeypatch.setattr("joblib.load", lambda path: ["tag1", "tag2", "tag3", "...", "tag50"])
 
     payload = {"text": "How to create an API with FastAPI?"}
     response = client.post("/predict", json=payload)
     assert response.status_code == 200
+    assert "predicted_tags" in response.json()
+    assert isinstance(response.json()["predicted_tags"], list)
 
     data = response.json()
     # Vérifie que la réponse contient bien une liste de tags
