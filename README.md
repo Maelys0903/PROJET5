@@ -6,24 +6,22 @@ Ce projet consiste à développer une API REST utilisant FastAPI, capable de pr�
 
 Le projet intègre également une chaîne d’intégration continue (CI) avec GitHub Actions pour exécuter automatiquement les tests unitaires à chaque push vers le dépôt GitHub.
 
----
-
 ## Structure du projet
 
-```plaintext
-projet5-api/
+project_root/
 │
-├── app/
-│   ├── main.py          # Point d'entrée de l'API FastAPI
-│   ├── model.py         # Implémentation de la fonction de prédiction
-│   ├── utils.py         # Fonctions utilitaires
-│   └── __init__.py
+├── app/                        # Code source de l'API
+│   ├── main.py                 # Point d'entrée de l'API (FastAPI / Flask)
+│   ├── bert.py                 # Implémentation du modèle BERT + fonctions de prédiction
+│   ├── config.py               # Configuration
+│   ├── __init__.py             
 │
-├── tests/
-│   └── test_main.py     # Tests unitaires pour l'API
+├── tests/                      # Tests unitaires
+│   └── test_predict.py         # Tests sur les fonctions de prédiction
 │
-├── requirements.txt     # Liste des packages Python requis
-├── README.md            # Ce fichier
-├── .github/
+├── requirements.txt            # Liste des packages
+├── README.md                   # Objectif du projet + explication structure
+├── .gitignore
+├── .github/                    # Configuration CI/CD GitHub Actions
 │   └── workflows/
-│       └── pyhton-app.yml       # Pipeline GitHub Actions pour la 
+│       └── python-app.yml      # Pipeline de déploiement continu + tests unitaires

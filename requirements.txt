@@ -5,3 +5,7 @@ pydantic
 joblib
 pytest
 mlflow
+gensim
+transformers
+torch
+mlflow

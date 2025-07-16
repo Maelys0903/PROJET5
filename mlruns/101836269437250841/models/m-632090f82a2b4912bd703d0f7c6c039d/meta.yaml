@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Mes documents/OpenClassRooms/PROJET5/mlruns/101836269437250841/models/m-632090f82a2b4912bd703d0f7c6c039d/artifacts
+creation_timestamp: 1752667246302
+experiment_id: '101836269437250841'
+last_updated_timestamp: 1752667256112
+model_id: m-632090f82a2b4912bd703d0f7c6c039d
+model_type: null
+name: model
+source_run_id: 9502cd1c143649cd9aea99cb61711e21
+status: 2
+status_message: null
