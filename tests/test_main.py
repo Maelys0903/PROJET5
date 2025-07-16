@@ -32,9 +32,9 @@ def test_predict_valid(monkeypatch):
     response = client.post("/predict", json=payload)
 
     assert response.status_code == 200
-    assert "predicted_tags" in response.json()
-    assert isinstance(response.json()["predicted_tags"], list)
-
+    assert "tags" in response.json()
+    assert isinstance(response.json()["tags"], list)
+    
 
     data = response.json()
     # Vérifie que la réponse contient bien une liste de tags
