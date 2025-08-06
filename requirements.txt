@@ -1,8 +1,4 @@
-pip>=24.0
-setuptools>=70.0
-wheel>=0.43
-
-numpy==1.26.4
+numpy
 pandas
 fastapi
 uvicorn
@@ -11,9 +7,9 @@ pydantic
 joblib
 pytest
 mlflow
-gensim==4.3.2
-transformers==4.41.2
-torch==2.3.0
-sentence-transformers==2.7.0
+gensim
+transformers
+torch
+sentence-transformers
 httpx
 python-multipart
