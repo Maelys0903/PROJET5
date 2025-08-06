@@ -7,8 +7,6 @@ pydantic
 joblib
 pytest
 mlflow
-scipy==1.10.1
-gensim==4.3.1
 transformers
 torch
 sentence-transformers
