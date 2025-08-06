@@ -1,6 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List
+from app import bert
 
 from app.bert import predict_tags
 
@@ -22,18 +23,10 @@ def read_root():
 
 @app.post("/predict", response_model=PredictionResponse)
 def predict(question: Question):
+    if not question.text.strip():
+        return {"tags": []}
     try:
-        if not question.text.strip():
-            return {"tags": []}
-
-        print("Texte reçu :", question.text)
-
         predicted_tags = bert.predict_tags(question.text)
-
-        print("Tags prédits :", predicted_tags)
-
         return {"tags": predicted_tags}
-
     except Exception as e:
-        print("Erreur pendant la prédiction :", str(e))
         raise HTTPException(status_code=500, detail=f"Erreur de prédiction : {str(e)}")
