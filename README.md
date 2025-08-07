@@ -25,3 +25,37 @@ project_root/
 ├── .github/                    # Configuration CI/CD GitHub Actions
 │   └── workflows/
 │       └── python-app.yml      # Pipeline de déploiement continu + tests unitaires
+|
+├── Exploration.ipynb
+├── API.ipynb 
+├── Non_supervisée.ipynb
+├── Supervisée.ipynb   
+├── Supervisée2_BERT.ipynb 
+├── Supervisée3_USE.ipynb 
+
+## Lancer l'API localement
+uvicorn app.main:app --reload
+
+{
+  "text": "Comment créer une API avec FastAPI et Python ?"
+}
+
+Git hub & Render :
+Via le terminal (exemple):
+>> git add requirements.txt                                           
+>> git commit -m "Mise en place du workflow GitHub Actions"
+>> git push --set-upstream origin master
+
+Render :
+https://projet5-api-5qd0.onrender.com
+Dans PowerShell :
+>>   Invoke-RestMethod `
+>>   -Uri "https://projet5-api-5qd0.onrender.com/predict" `
+>>   -Method POST `
+>>   -Headers @{"Content-Type" = "application/json"} `
+>>   -Body '{ "text": "Comment installer FastAPI ?" }'
+>>
+Résultat :
+tags
+----
+{python, fastapi}

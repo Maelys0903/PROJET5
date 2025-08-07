@@ -30,15 +30,20 @@ def clean_text(text: str) -> str:
     text = re.sub(r"[^a-zA-Z0-9\s]", "", text)
     return text.strip()
 
-def predict_tags(text: str) -> List[str]:
-    try:
-        if not text.strip():
-            return []
-        load_model_once()
-        cleaned = clean_text(text)
-        df_input = pd.DataFrame({"text": [cleaned]})
-        prediction = pipeline.predict(df_input)
-        return mlb.inverse_transform(prediction)[0]
-    except Exception as e:
-        print(f"Erreur dans predict_tags : {e}")
-        raise
+# Chargement du modèle MLflow
+model = mlflow.pyfunc.load_model("app/model_bert")
+
+# Chargement du MultiLabelBinarizer pour décoder les prédictions
+mlb = joblib.load("app/mlb.pkl")
+
+def predict_tags(text: str) -> list[str]:
+    # Préparer l'entrée sous forme DataFrame
+    df = pd.DataFrame({"text": [text]})
+    
+    # Prédire le binaire multi-label (matrice 1xN)
+    preds = model.predict(df)  # np.ndarray shape (1, n_tags)
+    
+    # Convertir en liste des tags prédits
+    tags = mlb.inverse_transform(preds)
+    # inverse_transform renvoie une liste de tuples, on prend le premier élément
+    return list(tags[0]) if tags else []

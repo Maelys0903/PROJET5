@@ -1,0 +1,30 @@
+artifact_path: file:///C:/Mes documents/OpenClassRooms/PROJET5/mlruns/101836269437250841/models/m-462ab960902c4d1a86c97afe49fc039c/artifacts
+flavors:
+  python_function:
+    cloudpickle_version: 3.1.1
+    code: null
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.pyfunc.model
+    python_model: python_model.pkl
+    python_version: 3.13.5
+    streamable: false
+is_signature_from_type_hint: false
+mlflow_version: 3.1.1
+model_id: m-462ab960902c4d1a86c97afe49fc039c
+model_size_bytes: 91577105
+model_uuid: m-462ab960902c4d1a86c97afe49fc039c
+prompts: null
+run_id: d966978b70a940cbbf29a5ba545860b8
+saved_input_example_info:
+  artifact_path: input_example.json
+  pandas_orient: split
+  serving_input_path: serving_input_example.json
+  type: dataframe
+signature:
+  inputs: '[{"type": "string", "name": "text", "required": true}]'
+  outputs: null
+  params: null
+type_hint_from_example: false
+utc_time_created: '2025-08-06 13:45:27.944158'
