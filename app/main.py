@@ -26,4 +26,5 @@ def predict(question: Question):
         predicted_tags = ["python", "fastapi"]
         return {"tags": predicted_tags}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur de prédiction : {str(e)}")  
+        raise HTTPException(status_code=500, detail=f"Erreur de prédiction : {str(e)}")
+      
