@@ -5,11 +5,7 @@ from app import bert
 
 from app.bert import predict_tags
 
-app = FastAPI(
-    title="API de Prédiction de Tags",
-    description="API basée sur un modèle BERT + LogisticRegression pour prédire les tags d'une question StackOverflow.",
-    version="1.0"
-)
+app = FastAPI()
 
 class Question(BaseModel):
     text: str
@@ -23,10 +19,8 @@ def read_root():
 
 @app.post("/predict", response_model=PredictionResponse)
 def predict(question: Question):
-    if not question.text.strip():
-        return {"tags": []}
     try:
-        predicted_tags = bert.predict_tags(question.text)
+        predicted_tags = predict_tags(question.text)
         return {"tags": predicted_tags}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur de prédiction : {str(e)}")
