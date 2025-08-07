@@ -16,15 +16,13 @@ class PredictionResponse(BaseModel):
 @app.get("/")
 def read_root():
     return {"message": "Bienvenue sur l'API de prédiction de tags !"}
-
+   
 @app.post("/predict", response_model=PredictionResponse)
 def predict(question: Question):
     try:
         if not question.text.strip():
             return {"tags": []}
-        # Simulation simple
-        predicted_tags = ["python", "fastapi"]
+        predicted_tags = predict_tags(question.text)
         return {"tags": predicted_tags}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur de prédiction : {str(e)}")
-      
