@@ -20,8 +20,10 @@ def read_root():
 @app.post("/predict", response_model=PredictionResponse)
 def predict(question: Question):
     try:
-        predicted_tags = predict_tags(question.text)
+        if not question.text.strip():
+            return {"tags": []}
+        # Simulation simple
+        predicted_tags = ["python", "fastapi"]
         return {"tags": predicted_tags}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur de prédiction : {str(e)}")
-    
+        raise HTTPException(status_code=500, detail=f"Erreur de prédiction : {str(e)}")  
