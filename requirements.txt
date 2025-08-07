@@ -1,9 +1,9 @@
-mlflow==3.1.1
-numpy==2.3.1
-pandas==2.3.0
-psutil==7.0.0
-scikit-learn==1.7.0
-sentence-transformers==5.0.0
+mlflow
+numpy
+pandas
+psutil
+scikit-learn
+sentence-transformers
 fastapi
 uvicorn
 transformers
