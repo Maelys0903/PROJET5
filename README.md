@@ -40,6 +40,7 @@ uvicorn app.main:app --reload
   "text": "Comment créer une API avec FastAPI et Python ?"
 }
 
+## Lancer l'API sur le cloud
 Git hub & Render :
 Via le terminal (exemple):
 >> git add requirements.txt                                           
