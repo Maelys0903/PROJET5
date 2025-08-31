@@ -1,7 +1,7 @@
 fastapi
 uvicorn
 mlflow==3.3.2
-numpy==1.26.0
+numpy==2.3.2
 pandas==2.3.2
 scikit-learn==1.7.1
 sentence-transformers==5.1.0
