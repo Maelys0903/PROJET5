@@ -1,10 +1,10 @@
 fastapi
 uvicorn
-mlflow
-numpy
-pandas
-scikit-learn
-sentence-transformers
+mlflow==3.1.1
+numpy==2.3.1
+pandas==2.3.0
+scikit-learn==1.7.0
+sentence-transformers==5.0.0
 joblib
 requests
 python-multipart
